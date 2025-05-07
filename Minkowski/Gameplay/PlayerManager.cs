@@ -10,7 +10,11 @@ public static class PlayerManager {
     public static void AddPlayer(Player player)
     {
         players.Add(player);
-        new Ship(new MinkowskiVector(0, 25*player.Id, 0), player);
+
+        // Ship owns the frame
+        var ship = new Ship(new MinkowskiVector(0, 25 * player.Id, 0), player);
+        //player.Ship = ship;
+        //player.ViewFrame = ship.ReferenceFrame; // bind after construction
     }
 
     public static Player? GetPlayerById(int id) =>

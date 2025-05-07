@@ -31,10 +31,9 @@ public class Player {
     public Dictionary<RenderableEntity, Vector2> VisibleVelocities { get; } = new(); //todo: fix ineffiecient use of dicts (tuple?)
 
     
-    public Player(int id, string name, FrameOfReference frame) {
+    public Player(int id, string name) {
         Id = id;
         Name = name;
-        ViewFrame = frame;
     }
 
     public void TransformPositions() {

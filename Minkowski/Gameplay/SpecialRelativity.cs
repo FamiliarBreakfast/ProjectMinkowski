@@ -184,6 +184,44 @@ public class FrameOfReference {
         return transformed + Origin;
     }
 
+    public static Vector2[] ApplyLengthContractionInFrame(
+        Vector2[] vertices,
+        Vector2 center,
+        FrameOfReference observerFrame,
+        Vector2 objectVelocityGlobal
+    ) {
+        // Step 1: Transform object's global velocity to observer frame
+        Vector2 relativeVelocity = objectVelocityGlobal - observerFrame.Velocity;
+
+        float speedSq = relativeVelocity.LengthSquared();
+        float c = (float)Config.C;
+
+        if (speedSq == 0 || speedSq >= c * c)
+            return (Vector2[])vertices.Clone();
+
+        float gamma = 1f / MathF.Sqrt(1f - speedSq / (c * c));
+        float contraction = 1f / gamma;
+
+        Vector2 direction = Vector2.Normalize(relativeVelocity);
+        var contracted = new Vector2[vertices.Length];
+
+        for (int i = 0; i < vertices.Length; i++) {
+            Vector2 relative = vertices[i] - center;
+
+            // Project onto direction of motion
+            float parallelMag = Vector2.Dot(relative, direction);
+            Vector2 parallel = direction * parallelMag;
+            Vector2 orthogonal = relative - parallel;
+
+            // Contract the parallel component
+            Vector2 contractedRelative = orthogonal + parallel * contraction;
+            contracted[i] = center + contractedRelative;
+        }
+
+        return contracted;
+    }
+
+    
     public override string ToString() =>
         $"Frame[Origin={Origin}, Velocity=({Velocity.X:F2}, {Velocity.Y:F2})]";
 }

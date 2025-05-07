@@ -70,6 +70,7 @@ public class ProjectMinowskiGame : Game
     protected override void Update(GameTime gameTime)
     {
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        InputSystem.Update(gameTime);
         foreach (var player in PlayerManager.Players) {
             player.Update(dt);
         }
@@ -78,7 +79,7 @@ public class ProjectMinowskiGame : Game
         {
             entity.Update(dt);
         }
-        InputSystem.Update(gameTime);
+        
     }
 
     protected override void Draw(GameTime gameTime)

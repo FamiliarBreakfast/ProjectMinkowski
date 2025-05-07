@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "CT3CtDVIRC0=",
+  "dgSpecHash": "km6L6GDjYH8=",
   "success": true,
-  "projectFilePath": "/home/anikyte/Documents/Minowski/Minkowski/Minkowski.csproj",
+  "projectFilePath": "/home/anikyte/Documents/Minkowski/Minkowski/Minkowski.csproj",
   "expectedPackageFiles": [
     "/home/anikyte/.nuget/packages/cyotek.drawing.bitmapfont/2.0.4/cyotek.drawing.bitmapfont.2.0.4.nupkg.sha512",
     "/home/anikyte/.nuget/packages/fontstashsharp.base/1.1.9/fontstashsharp.base.1.1.9.nupkg.sha512",

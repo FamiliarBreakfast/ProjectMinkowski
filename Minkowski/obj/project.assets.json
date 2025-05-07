@@ -478,11 +478,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/anikyte/Documents/Minowski/Minkowski/Minkowski.csproj",
+      "projectUniqueName": "/home/anikyte/Documents/Minkowski/Minkowski/Minkowski.csproj",
       "projectName": "Minkowski",
-      "projectPath": "/home/anikyte/Documents/Minowski/Minkowski/Minkowski.csproj",
+      "projectPath": "/home/anikyte/Documents/Minkowski/Minkowski/Minkowski.csproj",
       "packagesPath": "/home/anikyte/.nuget/packages/",
-      "outputPath": "/home/anikyte/Documents/Minowski/Minkowski/obj/",
+      "outputPath": "/home/anikyte/Documents/Minkowski/Minkowski/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/anikyte/.nuget/NuGet/NuGet.Config"

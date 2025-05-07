@@ -15,13 +15,17 @@ public class Ship : RenderableEntity
     public float RotationSpeed = 2f;
     
     public Color Color;
-    public FrameOfReference ReferenceFrame { get; }
+    public FrameOfReference ReferenceFrame;
 
     public Ship(MinkowskiVector absolutePosition, Player player) {
         AbsolutePosition = absolutePosition;
         Color = PlayerColorGenerator.GetColorFromID(player.Id);
-        ReferenceFrame = player.ViewFrame;
+    
+        // FIX: Create independent frame
+        ReferenceFrame = new FrameOfReference(absolutePosition, Velocity / (float)Config.C);
+    
         player.Ship = this;
+        player.ViewFrame = ReferenceFrame; // safe: only now do this
     }
 
     public void ApplyMovement(float dt, float forwardInput, float strafeInput, float rotateInput) {
@@ -46,31 +50,48 @@ public class Ship : RenderableEntity
     {
         AbsolutePosition.X += Velocity.X * deltaTime;
         AbsolutePosition.Y += Velocity.Y * deltaTime;
+        AbsolutePosition.T += deltaTime;
         
         ReferenceFrame.Origin.X = AbsolutePosition.X;
         ReferenceFrame.Origin.Y = AbsolutePosition.Y;
-        AbsolutePosition.T += deltaTime;
+        ReferenceFrame.Velocity = Velocity / (float)Config.C;
+        
         
         Worldline.AddEvent(new WorldlineEvent((float)AbsolutePosition.T, new Vector2((float)AbsolutePosition.X, (float)AbsolutePosition.Y), Rotation, Velocity));
+        Console.WriteLine($"[Ship {GetHashCode()}] added event: Vel = {Velocity.Length():0.000} | T = {AbsolutePosition.T:0.000}");
     }
 
-    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player) {
-        if (!player.VisibleRotations.TryGetValue(this, out float rotation))
-            rotation = Rotation; // fallback if not available
+    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player)
+    {
+        player.VisibleRotations.TryGetValue(this, out float rotation);
         
         float size = 20f;
-        if (player.RenderedPositions.ContainsKey(this))
+        if (player.RenderedPositions.ContainsKey(this)) //todo: lines instead of solid
         {
+            Vector2 entityVelocity = player.VisibleVelocities[this];         // in global frame
+            Vector2 observerVelocity = player.ViewFrame.Velocity * (float)Config.C;              // also in global frame
+
+            Vector2 relativeVelocity = entityVelocity - observerVelocity;
+            Console.WriteLine($"[Player {player.Id}] sees [{this.GetHashCode()}] with rel speed: {relativeVelocity.Length()/Config.C:0.000}c");
             Vector2 tip = player.RenderedPositions[this] + new Vector2((float)Math.Cos(rotation), (float)Math.Sin(rotation)) * size;
             Vector2 left = player.RenderedPositions[this] + new Vector2((float)Math.Cos(rotation + 2.5f), (float)Math.Sin(rotation + 2.5f)) * size * 0.6f;
             Vector2 right = player.RenderedPositions[this] + new Vector2((float)Math.Cos(rotation - 2.5f), (float)Math.Sin(rotation - 2.5f)) * size * 0.6f;
 
-            var vertices = new VertexPositionColor[] {
-                new(new Vector3(tip, 0), Color),
-                new(new Vector3(left, 0), Color),
-                new(new Vector3(right, 0), Color)
-            };
+            Vector2[] points = new[] { tip, left, right };
 
+            Console.WriteLine($"[Player {player.Id}] sees [{this.GetHashCode()}]");
+            Console.WriteLine($"   Ship vel: {entityVelocity.Length()/Config.C:0.000}c");
+            Console.WriteLine($"   Frame vel: {observerVelocity.Length()/Config.C:0.000}c");
+            Console.WriteLine($"   Relative : {relativeVelocity.Length()/Config.C:0.000}c");
+            
+            Vector2[] transformed = FrameOfReference.ApplyLengthContractionInFrame(points, player.RenderedPositions[this], player.ViewFrame, relativeVelocity);
+            
+            var vertices = new VertexPositionColor[] {
+                new(new Vector3(transformed[0], 0), Color),
+                new(new Vector3(transformed[1], 0), Color),
+                new(new Vector3(transformed[2], 0), Color)
+            };
+        
             foreach (var pass in effect.CurrentTechnique.Passes) {
                 pass.Apply();
                 graphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, vertices, 0, 1);

@@ -17,6 +17,9 @@ public abstract class RenderableEntity {
         _all.Add(this);
     }
 
+    public static Vector2 Rotate90CW(Vector2 v) => new(v.Y, -v.X);
+    public static Vector2 Rotate90CCW(Vector2 v) => new(-v.Y, v.X);
+    
     public virtual void Draw(SpriteBatch spriteBatch, Player player) { }
 
     public virtual void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player) { }
