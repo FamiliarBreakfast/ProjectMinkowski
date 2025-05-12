@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace ProjectMinkowski;
+namespace ProjectMinkowski.Relativity;
 
 //How does any of this work? Truthfully, I have no idea. Black magic and dark science.
 
@@ -95,7 +95,7 @@ public class MinkowskiVector {
     public override string ToString() => $"(T={T:F3}, X={X:F3}, Y={Y:F3})";
 }
 
-public struct WorldlineEvent {
+public struct WorldlineEvent { //todo: worldline event contains minkowskivector
     public float T { get; }
     public Vector2 Position { get; }
     public float Rotation { get; }
@@ -108,57 +108,17 @@ public struct WorldlineEvent {
         Velocity = velocity;
     }
 
-    public MinkowskiVector ToMinkowski() => new(T, Position.X, Position.Y);
-}
-public class Worldline {
-    public List<WorldlineEvent> Events { get; } = new();
-
-    public void AddEvent(WorldlineEvent evt) {
-        Events.Add(evt);
-    }
-
-    public void Prune(float currentTime, float maxAge = 30f) {
-        Events.RemoveAll(e => currentTime - e.T > maxAge);
-    }
-
-    /// <summary>
-    // Interpolate visible event as seen from observer spacetime position
-    /// </summary>
-    public WorldlineEvent? GetVisibleFrom(MinkowskiVector observer) {
-        for (int i = Events.Count - 2; i >= 0; i--) {
-            var a = Events[i];
-            var b = Events[i + 1];
-
-            double sa = (observer - a.ToMinkowski()).IntervalSquared();
-            double sb = (observer - b.ToMinkowski()).IntervalSquared();
-
-            bool aVisible = sa >= 0 && a.T <= observer.T;
-            bool bVisible = sb >= 0 && b.T <= observer.T;
-
-            if (!aVisible && bVisible) {
-                double t = sa / (sa - sb);
-
-                return new WorldlineEvent(
-                    MathHelper.Lerp(a.T, b.T, (float)t),
-                    Vector2.Lerp(a.Position, b.Position, (float)t),
-                    MathHelper.Lerp(a.Rotation, b.Rotation, (float)t),
-                    Vector2.Lerp(a.Velocity, b.Velocity, (float)t)
-                );
-            } else if (aVisible && bVisible) {
-                return b;
-            }
-        }
-
-        return null;
-    }
+    public MinkowskiVector ToMinkowski() => new(T, Position.X, Position.Y); //??
 }
 
-public class FrameOfReference {
-    public MinkowskiVector Origin { get; set; } // Position in global spacetime/3D minowski space/absolute position
+public class FrameOfReference
+{
+    public Worldcone Lightcone;
     public Vector2 Velocity { get; set; } // Velocity in the frame
 
-    public FrameOfReference(MinkowskiVector origin, Vector2 velocity) {
-        Origin = origin;
+    public FrameOfReference(MinkowskiVector origin, Vector2 velocity)
+    {
+        Lightcone = new Worldcone(origin, 1, -1); //new backwards facing lightcone
         Velocity = velocity;
     }
     
@@ -172,7 +132,7 @@ public class FrameOfReference {
     /// Converts a global spacetime event into this local frame.
     /// </summary>
     public MinkowskiVector ToLocal(MinkowskiVector globalEvent) {
-        var delta = globalEvent - Origin;
+        var delta = globalEvent - Lightcone.Apex;
         return delta.LorentzTo(Velocity);
     }
 
@@ -181,7 +141,7 @@ public class FrameOfReference {
     /// </summary>
     public MinkowskiVector ToGlobal(MinkowskiVector localEvent) {
         var transformed = localEvent.LorentzFrom(Velocity);
-        return transformed + Origin;
+        return transformed + Lightcone.Apex;
     }
 
     public static Vector2[] ApplyLengthContractionInFrame(
@@ -223,5 +183,5 @@ public class FrameOfReference {
 
     
     public override string ToString() =>
-        $"Frame[Origin={Origin}, Velocity=({Velocity.X:F2}, {Velocity.Y:F2})]";
+        $"Frame[Origin={Lightcone.Apex}, Velocity=({Velocity.X:F2}, {Velocity.Y:F2})]";
 }

@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using ProjectMinkowski.Relativity;
 using ProjectMinkowski.Rendering;
 
 namespace ProjectMinkowski.Entities;
@@ -52,8 +53,8 @@ public class Ship : RenderableEntity
         AbsolutePosition.Y += Velocity.Y * deltaTime;
         AbsolutePosition.T += deltaTime;
         
-        ReferenceFrame.Origin.X = AbsolutePosition.X;
-        ReferenceFrame.Origin.Y = AbsolutePosition.Y;
+        ReferenceFrame.Lightcone.Apex.X = AbsolutePosition.X; //todo: royally fucked
+        ReferenceFrame.Lightcone.Apex.Y = AbsolutePosition.Y;
         ReferenceFrame.Velocity = Velocity / (float)Config.C;
         
         

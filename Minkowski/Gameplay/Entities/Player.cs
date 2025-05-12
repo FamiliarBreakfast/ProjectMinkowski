@@ -1,13 +1,14 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FontStashSharp;
+using ProjectMinkowski.Relativity;
 using ProjectMinkowski.Rendering;
 
 namespace ProjectMinkowski.Entities;
 
 using ProjectMinkowski;
 
-public class Player {
+public class Player { //todo: IMPORTANT! player -> viewport, ship -> player
     public static void DrawHud(SpriteBatch batch, Player player)
     {
         var ship = player.Ship;
@@ -38,7 +39,8 @@ public class Player {
 
     public void TransformPositions() {
         foreach (var entity in RenderableEntity.All) {
-            var evt = entity.Worldline.GetVisibleFrom(ViewFrame.Origin);
+            //var evt = entity.Worldline.GetVisibleFrom(ViewFrame.Origin); //todo: replace
+            var evt = World.Intersects(entity.Worldline, ViewFrame.Lightcone);
 
             if (evt != null) {
                 var minkowski = evt.Value.ToMinkowski();
@@ -52,7 +54,7 @@ public class Player {
 
     public void Update(float deltaTime)
     {
-        ViewFrame.Origin.T += deltaTime;
+        ViewFrame.Lightcone.Apex.T += deltaTime; //also fix
         TransformPositions();
         //process input
         //transform positions

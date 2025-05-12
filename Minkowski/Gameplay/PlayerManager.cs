@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using ProjectMinkowski;
 using ProjectMinkowski.Entities;
+using ProjectMinkowski.Relativity;
 
 public static class PlayerManager {
     private static readonly List<Player> players = new();

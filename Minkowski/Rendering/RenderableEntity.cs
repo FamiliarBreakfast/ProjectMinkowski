@@ -1,4 +1,5 @@
 using ProjectMinkowski.Entities;
+using ProjectMinkowski.Relativity;
 
 namespace ProjectMinkowski.Rendering;
 
