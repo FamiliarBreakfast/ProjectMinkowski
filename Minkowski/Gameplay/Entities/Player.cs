@@ -8,6 +8,8 @@ namespace ProjectMinkowski.Entities;
 
 using ProjectMinkowski;
 
+//what is a player? a miserable little window through which one views the world...
+//the player is the soul. the body is the ship.
 public class Player { //todo: IMPORTANT! player -> viewport, ship -> player
     public static void DrawHud(SpriteBatch batch, Player player)
     {
@@ -24,7 +26,6 @@ public class Player { //todo: IMPORTANT! player -> viewport, ship -> player
     }
     public int Id { get; }
     public string Name { get; set; }
-    public FrameOfReference ViewFrame { get; set; }
     public Ship Ship;
     public Dictionary<RenderableEntity, MinkowskiVector> TransformedPositions { get; } = new(); //entity positions transformed to the current players frame of reference
     public Dictionary<RenderableEntity, Vector2> RenderedPositions { get; } = new(); //transformed positions converted to vector2 rendering positions
@@ -37,27 +38,45 @@ public class Player { //todo: IMPORTANT! player -> viewport, ship -> player
         Name = name;
     }
 
-    public void TransformPositions() {
-        foreach (var entity in RenderableEntity.All) {
-            //var evt = entity.Worldline.GetVisibleFrom(ViewFrame.Origin); //todo: replace
-            var evt = World.Intersects(entity.Worldline, ViewFrame.Lightcone);
-
-            if (evt != null) {
-                var minkowski = evt.Value.ToMinkowski();
-                var local = ViewFrame.ToLocal(minkowski);
-                TransformedPositions[entity] = local;
-                VisibleRotations[entity] = evt.Value.Rotation;
-                VisibleVelocities[entity] = evt.Value.Velocity;
+    private void IntersectLines()
+    {
+        //get our worldcone
+        //for entity in worldlineentity instances
+        //run World.Intersects(instance, worldcone)
+        //if it does
+        //get its minkowskivector
+        //transform it
+        //store it for rendering
+        foreach (var entity in WorldlineEntity.Instances)
+        {
+            if (entity.Worldline.Events.Count > 0) {
+                WorldlineEvent? evt = World.Intersects(entity.Worldline, Ship.Frame.Lightcone);
+                if (evt != null)
+                {
+                    TransformedPositions[entity] = Ship.Frame.ToLocal(evt.Origin);
+                    VisibleRotations[entity] = evt.Rotation; //todo: arbitrary event data?
+                    VisibleVelocities[entity] = evt.Velocity;
+                }
             }
         }
     }
 
+    private void IntersectCones()
+    {
+        //get our worldcone
+        //for entity in worldconeentity instances
+        //run World.Intersects(worldcone, worldcone)
+        //if it does
+        //get its arc
+        //transform it
+        //store it for rendering
+    }
+
     public void Update(float deltaTime)
     {
-        ViewFrame.Lightcone.Apex.T += deltaTime; //also fix
-        TransformPositions();
-        //process input
-        //transform positions
-        //render positions
+        Ship.Frame.Lightcone.Apex.T += deltaTime; //ensure we proceed forward through time. generally considered a good thing
+        IntersectLines();
+        //intersectCones
+        //doLorentzTransformations?
     }
 }

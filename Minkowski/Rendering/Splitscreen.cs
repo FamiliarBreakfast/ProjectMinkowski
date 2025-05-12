@@ -44,14 +44,14 @@ public class SplitScreenRenderer {
 
         batch.End();
         
-        foreach (var entity in RenderableEntity.All) {
+        foreach (var entity in RenderableEntity.Instances) {
             entity.VertexDraw(graphics, effect, player);
         }
         
         batch.Begin();
         batch.DrawString(GameResources.DefaultFont, "Player " + player.Id, new Vector2(10, 10), Color.White);
         Player.DrawHud(batch, player);
-        foreach (var entity in RenderableEntity.All) {
+        foreach (var entity in RenderableEntity.Instances) {
             entity.Draw(batch, player);
         }
         batch.End();

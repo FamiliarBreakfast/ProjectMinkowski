@@ -1,30 +1,43 @@
 using ProjectMinkowski.Entities;
 using ProjectMinkowski.Relativity;
 
-namespace ProjectMinkowski.Rendering;
+namespace ProjectMinkowski.Rendering; //todo: this should be elsewhere
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-public abstract class RenderableEntity {
-    private static readonly List<RenderableEntity> _all = new();
-
-    public static IEnumerable<RenderableEntity> All => _all;
-    
-    public Worldline Worldline { get; } = new();
-    public MinkowskiVector AbsolutePosition { get; set; }
-
+public abstract class RenderableEntity { //todo: refactor to worldline entity? interface??
+    public static readonly List<RenderableEntity> Instances = new();
+    public static void ClearAll() => Instances.Clear();
     public RenderableEntity() {
-        _all.Add(this);
+        Instances.Add(this);
     }
 
-    public static Vector2 Rotate90CW(Vector2 v) => new(v.Y, -v.X);
-    public static Vector2 Rotate90CCW(Vector2 v) => new(-v.Y, v.X);
-    
-    public virtual void Draw(SpriteBatch spriteBatch, Player player) { }
+    public abstract void Update(float deltaTime);
+    public abstract void Draw(SpriteBatch spriteBatch, Player player);
+    public abstract void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player);
+}
 
-    public virtual void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player) { }
+public abstract class WorldlineEntity : RenderableEntity
+{
+    public static readonly List<WorldlineEntity> Instances = new();
+    public static void ClearAll() => Instances.Clear();
+    public WorldlineEntity() {
+        Instances.Add(this);
+    }
 
-    public static void ClearAll() => _all.Clear();
-    public abstract void Update(float dt);
+    public Worldline Worldline;
+    public MinkowskiVector Origin;
+}
+
+public abstract class WorldconeEntity : RenderableEntity
+{
+    public static readonly List<WorldconeEntity> Instances = new();
+    public static void ClearAll() => Instances.Clear();
+    public WorldconeEntity() {
+        Instances.Add(this);
+    }
+
+    public Worldcone Worldcone;
+    //public MinkowskiVector GetOrigin();
 }

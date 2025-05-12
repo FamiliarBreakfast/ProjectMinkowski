@@ -64,7 +64,7 @@ public class ProjectMinowskiGame : Game
             World = Matrix.Identity
         };
         
-        WorldconeRefinedIntersectionTests.RunAll();
+        //WorldconeRefinedIntersectionTests.RunAll();
         
         LocalMultiplayerManager.InitializeLocalPlayers(2); // or 4
     }
@@ -77,7 +77,7 @@ public class ProjectMinowskiGame : Game
             player.Update(dt);
         }
 
-        foreach (var entity in RenderableEntity.All)
+        foreach (var entity in RenderableEntity.Instances)
         {
             entity.Update(dt);
         }

@@ -5,10 +5,10 @@ using ProjectMinkowski.Rendering;
 
 namespace ProjectMinkowski.Entities;
 
-public class Ship : RenderableEntity
+public class Ship : WorldlineEntity
 {
     public float Rotation;
-    public float Acceleration;
+    //public float Acceleration;
     public Vector2 Velocity;
 
     public float ThrustPower = 10f;
@@ -16,17 +16,16 @@ public class Ship : RenderableEntity
     public float RotationSpeed = 2f;
     
     public Color Color;
-    public FrameOfReference ReferenceFrame;
+    public FrameOfReference Frame;
 
     public Ship(MinkowskiVector absolutePosition, Player player) {
-        AbsolutePosition = absolutePosition;
+        Origin = absolutePosition;
         Color = PlayerColorGenerator.GetColorFromID(player.Id);
-    
+        Worldline = new Worldline();
         // FIX: Create independent frame
-        ReferenceFrame = new FrameOfReference(absolutePosition, Velocity / (float)Config.C);
+        Frame = new FrameOfReference(absolutePosition, Velocity / (float)Config.C);
     
         player.Ship = this;
-        player.ViewFrame = ReferenceFrame; // safe: only now do this
     }
 
     public void ApplyMovement(float dt, float forwardInput, float strafeInput, float rotateInput) {
@@ -49,19 +48,23 @@ public class Ship : RenderableEntity
     
     public override void Update(float deltaTime)
     {
-        AbsolutePosition.X += Velocity.X * deltaTime;
-        AbsolutePosition.Y += Velocity.Y * deltaTime;
-        AbsolutePosition.T += deltaTime;
+        Origin.X += Velocity.X * deltaTime;
+        Origin.Y += Velocity.Y * deltaTime;
+        Origin.T += deltaTime;
         
-        ReferenceFrame.Lightcone.Apex.X = AbsolutePosition.X; //todo: royally fucked
-        ReferenceFrame.Lightcone.Apex.Y = AbsolutePosition.Y;
-        ReferenceFrame.Velocity = Velocity / (float)Config.C;
+        Frame.Lightcone.Apex.X = Origin.X; //todo: royally fucked
+        Frame.Lightcone.Apex.Y = Origin.Y;
+        Frame.Velocity = Velocity / (float)Config.C;
         
-        
-        Worldline.AddEvent(new WorldlineEvent((float)AbsolutePosition.T, new Vector2((float)AbsolutePosition.X, (float)AbsolutePosition.Y), Rotation, Velocity));
+            Worldline.AddEvent(new WorldlineEvent(
+                new MinkowskiVector(Origin.T, Origin.X, Origin.Y),
+                Rotation,
+                Velocity
+            ));
         //Console.WriteLine($"[Ship {GetHashCode()}] added event: Vel = {Velocity.Length():0.000} | T = {AbsolutePosition.T:0.000}");
     }
 
+    public override void Draw(SpriteBatch spriteBatch, Player player) { }
     public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player)
     {
         player.VisibleRotations.TryGetValue(this, out float rotation);
@@ -70,7 +73,7 @@ public class Ship : RenderableEntity
         if (player.RenderedPositions.ContainsKey(this)) //todo: lines instead of solid
         {
             Vector2 entityVelocity = player.VisibleVelocities[this];         // in global frame
-            Vector2 observerVelocity = player.ViewFrame.Velocity * (float)Config.C;              // also in global frame
+            Vector2 observerVelocity = player.Ship.Frame.Velocity * (float)Config.C;              // also in global frame
 
             Vector2 relativeVelocity = entityVelocity - observerVelocity;
             //Console.WriteLine($"[Player {player.Id}] sees [{this.GetHashCode()}] with rel speed: {relativeVelocity.Length()/Config.C:0.000}c");
@@ -85,7 +88,7 @@ public class Ship : RenderableEntity
             //Console.WriteLine($"   Frame vel: {observerVelocity.Length()/Config.C:0.000}c");
             //Console.WriteLine($"   Relative : {relativeVelocity.Length()/Config.C:0.000}c");
             
-            Vector2[] transformed = FrameOfReference.ApplyLengthContractionInFrame(points, player.RenderedPositions[this], player.ViewFrame, relativeVelocity);
+            Vector2[] transformed = FrameOfReference.ApplyLengthContractionInFrame(points, player.RenderedPositions[this], player.Ship.Frame, relativeVelocity);
             
             var vertices = new VertexPositionColor[] {
                 new(new Vector3(transformed[0], 0), Color),

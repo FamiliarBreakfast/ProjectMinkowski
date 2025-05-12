@@ -10,7 +10,7 @@ namespace ProjectMinkowski.Relativity {
         }
 
         public void Prune(float currentTime, float maxAge = 30f) {
-            Events.RemoveAll(e => currentTime - e.T > maxAge);
+            Events.RemoveAll(e => currentTime - e.Origin.T > maxAge);
         }
     }
     
@@ -114,8 +114,8 @@ namespace ProjectMinkowski.Relativity {
                 var a = events[i];
                 var b = events[i + 1];
 
-                var am = a.ToMinkowski();
-                var bm = b.ToMinkowski();
+                var am = a.Origin;
+                var bm = b.Origin;
 
                 MinkowskiVector da = am - cone.Apex;
                 MinkowskiVector db = bm - cone.Apex;
@@ -139,8 +139,11 @@ namespace ProjectMinkowski.Relativity {
                     float blend = (expectedRa - ra) / ((expectedRb - rb) - (expectedRa - ra));
 
                     return new WorldlineEvent(
-                        MathHelper.Lerp(a.T, b.T, blend),
-                        Vector2.Lerp(a.Position, b.Position, blend),
+                        new MinkowskiVector(
+                            MathHelper.Lerp((float)a.Origin.T, (float)b.Origin.T, blend),
+                            MathHelper.Lerp((float)a.Origin.X, (float)b.Origin.X, blend),
+                            MathHelper.Lerp((float)a.Origin.Y, (float)b.Origin.Y, blend)
+                        ),
                         MathHelper.Lerp(a.Rotation, b.Rotation, blend),
                         Vector2.Lerp(a.Velocity, b.Velocity, blend)
                     );
@@ -202,7 +205,7 @@ namespace ProjectMinkowski.Relativity {
             }
 
             Console.WriteLine($"  Distance between centers = {Vector2.Distance(centerA, centerB)}");
-            Console.WriteLine($"  Sum of radii = {radiusA + radiusB}");
+            Console.WriteLine($"  Sum of radii = {radiusA + radiusB}"); 
             
             // Step 4: Compute angular span
             float a0 = MathF.Atan2(offset.Y, offset.X);

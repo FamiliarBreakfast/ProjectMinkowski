@@ -95,20 +95,18 @@ public class MinkowskiVector {
     public override string ToString() => $"(T={T:F3}, X={X:F3}, Y={Y:F3})";
 }
 
-public struct WorldlineEvent { //todo: worldline event contains minkowskivector
-    public float T { get; }
-    public Vector2 Position { get; }
-    public float Rotation { get; }
-    public Vector2 Velocity { get; }
+public class WorldlineEvent
+{
+    public MinkowskiVector Origin;
+    public float Rotation;
+    public Vector2 Velocity;
 
-    public WorldlineEvent(float t, Vector2 position, float rotation, Vector2 velocity) {
-        T = t;
-        Position = position;
+    public WorldlineEvent(MinkowskiVector origin, float rotation, Vector2 velocity)
+    {
+        Origin = origin;
         Rotation = rotation;
         Velocity = velocity;
     }
-
-    public MinkowskiVector ToMinkowski() => new(T, Position.X, Position.Y); //??
 }
 
 public class FrameOfReference
