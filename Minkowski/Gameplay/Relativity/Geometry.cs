@@ -68,6 +68,31 @@ namespace ProjectMinkowski.Relativity {
             };
         }
     }
+    
+    public class Arc {
+        public MinkowskiVector Center; //center of the arc
+        public float Radius;
+        public float AngleStart; //radians
+        public float AngleEnd;
+
+        public Arc(MinkowskiVector center, float radius, float angleStart, float angleEnd) {
+            Center = center;
+            Radius = radius;
+            AngleStart = angleStart;
+            AngleEnd = angleEnd;
+        }
+        public Vector2[] ToVertices(int segmentCount = 64) {
+            var verts = new Vector2[segmentCount + 1];
+            float angleSpan = AngleEnd - AngleStart;
+
+            for (int i = 0; i <= segmentCount; i++) {
+                float t = i / (float)segmentCount;
+                float angle = AngleStart + t * angleSpan;
+                verts[i] = new Vector2((float)(Center.X + MathF.Cos(angle) * Radius), (float)(Center.Y + MathF.Sin(angle) * Radius));
+            }
+            return verts;
+        }
+    }
 
 
     public static class World { //todo: gpu compute
@@ -131,9 +156,68 @@ namespace ProjectMinkowski.Relativity {
         }
 
         // Worldcone - Worldcone
-        public static bool Intersects(Worldcone a, Worldcone b) {
-            // TODO: implement volumetric lightcone collision test
-            return false;
+        public static Arc? Intersects(Worldcone a, Worldcone b, float globalTime) {
+            Console.WriteLine($"[DEBUG] Intersecting at t = {globalTime}");
+            Console.WriteLine($"  Cone A apex = {a.Apex}, dir = {a.TemporalDirection}");
+            Console.WriteLine($"  Cone B apex = {b.Apex}, dir = {b.TemporalDirection}");
+
+            // Step 1: Compute spatial radius of cone A at this time
+            float dtA = globalTime - (float)a.Apex.T;
+            if ((a.TemporalDirection > 0 && dtA < 0) ||
+                (a.TemporalDirection < 0 && dtA > 0) ||
+                a.TemporalDirection == 0) return null;
+
+            dtA = Math.Abs(dtA);
+
+            float radiusA = (float)(a.Angle * Config.C * dtA);
+            Vector2 centerA = new Vector2((float)a.Apex.X, (float)a.Apex.Y);
+
+            // Step 2: Repeat for cone B
+            float dtB = globalTime - (float)b.Apex.T;
+            if ((b.TemporalDirection > 0 && dtB < 0) ||
+                (b.TemporalDirection < 0 && dtB > 0) ||
+                b.TemporalDirection == 0) return null;
+
+            dtB = Math.Abs(dtB);
+
+            float radiusB = (float)(b.Angle * Config.C * dtB);
+            Vector2 centerB = new Vector2((float)b.Apex.X, (float)b.Apex.Y);
+
+            Console.WriteLine($"  ΔtA = {dtA}, ΔtB = {dtB}");
+            Console.WriteLine($"  RadiusA = {radiusA}, RadiusB = {radiusB}");
+            Console.WriteLine($"  CenterA = {centerA}, CenterB = {centerB}");
+            
+            // Step 3: Compute distance between centers
+            Vector2 offset = centerB - centerA;
+            float d = offset.Length();
+
+            if (d > radiusA + radiusB || d < Math.Abs(radiusA - radiusB)) {
+                // No intersection
+                return null;
+            }
+
+            if (d < 1e-6f && Math.Abs(radiusA - radiusB) < 1e-6f) {
+                // Full overlap
+                return new Arc(new MinkowskiVector(globalTime, centerA.X, centerA.Y), radiusA, 0, MathHelper.TwoPi);
+            }
+
+            Console.WriteLine($"  Distance between centers = {Vector2.Distance(centerA, centerB)}");
+            Console.WriteLine($"  Sum of radii = {radiusA + radiusB}");
+            
+            // Step 4: Compute angular span
+            float a0 = MathF.Atan2(offset.Y, offset.X);
+            float cosAlpha = (radiusA * radiusA + d * d - radiusB * radiusB) / (2 * radiusA * d);
+            float alpha = MathF.Acos(Math.Clamp(cosAlpha, -1f, 1f));
+
+            float angleStart = a0 - alpha;
+            float angleEnd = a0 + alpha;
+
+            return new Arc(
+                new MinkowskiVector(globalTime, centerA.X, centerA.Y),
+                radiusA,
+                angleStart,
+                angleEnd
+            );
         }
     }
 }

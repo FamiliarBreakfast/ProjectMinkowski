@@ -59,7 +59,7 @@ public class Ship : RenderableEntity
         
         
         Worldline.AddEvent(new WorldlineEvent((float)AbsolutePosition.T, new Vector2((float)AbsolutePosition.X, (float)AbsolutePosition.Y), Rotation, Velocity));
-        Console.WriteLine($"[Ship {GetHashCode()}] added event: Vel = {Velocity.Length():0.000} | T = {AbsolutePosition.T:0.000}");
+        //Console.WriteLine($"[Ship {GetHashCode()}] added event: Vel = {Velocity.Length():0.000} | T = {AbsolutePosition.T:0.000}");
     }
 
     public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player)
@@ -73,17 +73,17 @@ public class Ship : RenderableEntity
             Vector2 observerVelocity = player.ViewFrame.Velocity * (float)Config.C;              // also in global frame
 
             Vector2 relativeVelocity = entityVelocity - observerVelocity;
-            Console.WriteLine($"[Player {player.Id}] sees [{this.GetHashCode()}] with rel speed: {relativeVelocity.Length()/Config.C:0.000}c");
+            //Console.WriteLine($"[Player {player.Id}] sees [{this.GetHashCode()}] with rel speed: {relativeVelocity.Length()/Config.C:0.000}c");
             Vector2 tip = player.RenderedPositions[this] + new Vector2((float)Math.Cos(rotation), (float)Math.Sin(rotation)) * size;
             Vector2 left = player.RenderedPositions[this] + new Vector2((float)Math.Cos(rotation + 2.5f), (float)Math.Sin(rotation + 2.5f)) * size * 0.6f;
             Vector2 right = player.RenderedPositions[this] + new Vector2((float)Math.Cos(rotation - 2.5f), (float)Math.Sin(rotation - 2.5f)) * size * 0.6f;
 
             Vector2[] points = new[] { tip, left, right };
 
-            Console.WriteLine($"[Player {player.Id}] sees [{this.GetHashCode()}]");
-            Console.WriteLine($"   Ship vel: {entityVelocity.Length()/Config.C:0.000}c");
-            Console.WriteLine($"   Frame vel: {observerVelocity.Length()/Config.C:0.000}c");
-            Console.WriteLine($"   Relative : {relativeVelocity.Length()/Config.C:0.000}c");
+            //Console.WriteLine($"[Player {player.Id}] sees [{this.GetHashCode()}]");
+            //Console.WriteLine($"   Ship vel: {entityVelocity.Length()/Config.C:0.000}c");
+            //Console.WriteLine($"   Frame vel: {observerVelocity.Length()/Config.C:0.000}c");
+            //Console.WriteLine($"   Relative : {relativeVelocity.Length()/Config.C:0.000}c");
             
             Vector2[] transformed = FrameOfReference.ApplyLengthContractionInFrame(points, player.RenderedPositions[this], player.ViewFrame, relativeVelocity);
             

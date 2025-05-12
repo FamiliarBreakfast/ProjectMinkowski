@@ -53,7 +53,7 @@ public class ProjectMinowskiGame : Game
         renderer = new SplitScreenRenderer(GraphicsDevice);
 
         fontSystem = new FontSystem();
-        fontSystem.AddFont(File.ReadAllBytes("Assets/SpaceMono.ttf"));
+        fontSystem.AddFont(File.ReadAllBytes("Assets/SpaceMono.ttf")); //todo: i do not have the rights to this font
         GameResources.DefaultFont = fontSystem.GetFont(16);  // 16 pt size
         
         GameResources.BasicEffect = new BasicEffect(GraphicsDevice) {
@@ -63,6 +63,8 @@ public class ProjectMinowskiGame : Game
             View = Matrix.Identity,
             World = Matrix.Identity
         };
+        
+        WorldconeRefinedIntersectionTests.RunAll();
         
         LocalMultiplayerManager.InitializeLocalPlayers(2); // or 4
     }
