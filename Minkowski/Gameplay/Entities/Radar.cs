@@ -19,24 +19,6 @@ public class Radar : WorldconeEntity
     }
 
     public override void Draw(SpriteBatch spriteBatch, Player player) { }
-    
-    public static VertexPositionColor[] ConvertPointsToTriangles(VertexPositionColor[] points, float size)
-    {
-        List<VertexPositionColor> triangleVertices = new();
-
-        foreach (var point in points)
-        {
-            var pos = point.Position;
-            var color = point.Color;
-
-            // Form an upright triangle centered on the point
-            triangleVertices.Add(new VertexPositionColor(pos + new Vector3(-size, size, 0), color));  // left top
-            triangleVertices.Add(new VertexPositionColor(pos + new Vector3(size, size, 0), color));   // right top
-            triangleVertices.Add(new VertexPositionColor(pos + new Vector3(0, -size, 0), color));     // bottom center
-        }
-
-        return triangleVertices.ToArray();
-    }
 
     public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player)
     {
