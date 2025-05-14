@@ -63,8 +63,8 @@ public class ProjectMinowskiGame : Game
             View = Matrix.Identity,
             World = Matrix.Identity
         };
-        
-        //WorldconeRefinedIntersectionTests.RunAll();
+
+        WorldconeAnalyticalIntersectionTests.RunAll();
         
         LocalMultiplayerManager.InitializeLocalPlayers(2); // or 4
     }

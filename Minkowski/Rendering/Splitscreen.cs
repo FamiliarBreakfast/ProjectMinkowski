@@ -40,7 +40,12 @@ public class SplitScreenRenderer {
         effect.Projection = Matrix.CreateOrthographicOffCenter(0, graphics.Viewport.Width,
             graphics.Viewport.Height, 0, 0, 1);
         effect.View = Matrix.Identity;
-        effect.World = Matrix.Identity;
+        effect.World = Matrix.CreateTranslation(
+            graphics.Viewport.Width / 2f,
+            graphics.Viewport.Height / 2f,
+            0
+        );
+
 
         batch.End();
         
@@ -64,9 +69,10 @@ public class SplitScreenRenderer {
 
         player.RenderedPositions.Clear();
 
-        foreach (var (entity, localPos) in player.TransformedPositions) {
-            var screenX = (float)localPos.X + halfWidth;
-            var screenY = (float)localPos.Y + halfHeight;
+        foreach (var (entity, localPos) in player.TransformedPositions)
+        {
+            var screenX = (float)localPos.X;
+            var screenY = (float)localPos.Y;
             player.RenderedPositions[entity] = new Vector2(screenX, screenY);
         }
     }

@@ -31,6 +31,7 @@ public class Player { //todo: IMPORTANT! player -> viewport, ship -> player
     public Dictionary<RenderableEntity, Vector2> RenderedPositions { get; } = new(); //transformed positions converted to vector2 rendering positions
     public Dictionary<RenderableEntity, float> VisibleRotations { get; } = new();
     public Dictionary<RenderableEntity, Vector2> VisibleVelocities { get; } = new(); //todo: fix ineffiecient use of dicts (tuple?)
+    public Dictionary<WorldconeEntity, Arc> TransformedArcs { get; } = new();
 
     
     public Player(int id, string name) {
@@ -70,12 +71,22 @@ public class Player { //todo: IMPORTANT! player -> viewport, ship -> player
         //get its arc
         //transform it
         //store it for rendering
+        foreach (var entity in WorldconeEntity.Instances)
+        {
+            Arc? arc = World.Intersects(entity.Worldcone, Ship.Frame.Lightcone);
+            if (arc != null)
+            {
+                Arc transform = arc.ToLorentzTransformed(Ship.Frame);
+                TransformedArcs[entity] = transform;
+            }
+        }
     }
 
     public void Update(float deltaTime)
     {
         Ship.Frame.Lightcone.Apex.T += deltaTime; //ensure we proceed forward through time. generally considered a good thing
         IntersectLines();
+        IntersectCones();
         //intersectCones
         //doLorentzTransformations?
     }

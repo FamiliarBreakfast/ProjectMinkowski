@@ -1,5 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using ProjectMinkowski.Entities;
+using ProjectMinkowski.Relativity;
 
 namespace ProjectMinkowski.Multiplayer.Local;
 
@@ -24,6 +26,11 @@ public static class InputSystem {
         if (state.IsKeyDown(Keys.A)) moveStrafe -= 1;
         if (state.IsKeyDown(Keys.E)) rotate += 1;
         if (state.IsKeyDown(Keys.Q)) rotate -= 1;
+
+        if (state.IsKeyDown(Keys.K))
+        {
+            new Radar(player.Ship.Origin.Clone());
+        }
 
         ship.ApplyMovement(dt, moveForward, moveStrafe, rotate);
     }

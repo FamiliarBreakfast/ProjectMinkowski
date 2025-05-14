@@ -67,6 +67,7 @@ public class Ship : WorldlineEntity
     public override void Draw(SpriteBatch spriteBatch, Player player) { }
     public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player)
     {
+        
         player.VisibleRotations.TryGetValue(this, out float rotation);
         
         float size = 20f;

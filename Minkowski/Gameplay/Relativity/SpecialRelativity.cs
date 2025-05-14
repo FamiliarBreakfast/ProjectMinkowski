@@ -22,6 +22,11 @@ public class MinkowskiVector {
         Y = vector.Y;
     }
 
+    public MinkowskiVector Clone()
+    {
+        return new MinkowskiVector(this.T, this.X, this.Y);
+    }
+
     /// <summary>
     // Minkowski interval squared: s² = t² - x² - y²
     /// </summary>

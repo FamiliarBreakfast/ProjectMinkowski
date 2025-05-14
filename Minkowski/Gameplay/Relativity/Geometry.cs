@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using System;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace ProjectMinkowski.Relativity {
     public class Worldline {
@@ -15,9 +16,9 @@ namespace ProjectMinkowski.Relativity {
     }
     
     public class Worldcone {
-        public MinkowskiVector Apex;         // Apex of the cone in spacetime
-        public float Angle;                  // Expansion rate (0 < Angle ≤ 1), as fraction of speed of light
-        public int TemporalDirection;        // +1 (forward), -1 (backward), 0 (undefined)
+        public readonly MinkowskiVector Apex;         // Apex of the cone in spacetime
+        public readonly float Angle;                  // Expansion rate (0 < Angle ≤ 1), as fraction of speed of light
+        public readonly int TemporalDirection;        // +1 (forward), -1 (backward), 0 (undefined)
 
         public Worldcone(MinkowskiVector apex, float angle, int temporalDirection) {
             Apex = apex;
@@ -70,29 +71,98 @@ namespace ProjectMinkowski.Relativity {
     }
     
     public class Arc {
-        public MinkowskiVector Center; //center of the arc
-        public float Radius;
-        public float AngleStart; //radians
-        public float AngleEnd;
+        public MinkowskiVector Center;  // Center of the ellipse
+        public float RadiusX;           // Semi-major axis (X radius)
+        public float RadiusY;           // Semi-minor axis (Y radius)
+        public float AngleStart;        // Start angle in radians
+        public float AngleEnd;          // End angle in radians
+        public Vector2 Rotation;
 
-        public Arc(MinkowskiVector center, float radius, float angleStart, float angleEnd) {
+        public Arc(MinkowskiVector center, float radiusX, float radiusY, float angleStart, float angleEnd, Vector2 rotation) {
             Center = center;
-            Radius = radius;
+            RadiusX = radiusX;
+            RadiusY = radiusY;
             AngleStart = angleStart;
             AngleEnd = angleEnd;
+            Rotation = rotation;
         }
-        public Vector2[] ToVertices(int segmentCount = 64) {
-            var verts = new Vector2[segmentCount + 1];
+        
+        public Arc(MinkowskiVector center, float radius, float angleStart, float angleEnd)
+            : this(center, radius, radius, angleStart, angleEnd, Vector2.Zero) {
+        }
+
+        public override string ToString() =>
+            $"Arc[Center={Center}, Radius=({RadiusX}, {RadiusY}), Angle=({AngleStart}, {AngleEnd})]";
+
+        public VertexPositionColor[] ToVertices(int segmentCount = 64)
+        {
+            var verts = new VertexPositionColor[segmentCount + 1];
             float angleSpan = AngleEnd - AngleStart;
+
+            Vector2 majorAxis = Rotation;
+            if (majorAxis.LengthSquared() < 1e-6f)
+                majorAxis = Vector2.UnitX; // fallback if uninitialized
+
+            majorAxis = Vector2.Normalize(majorAxis);
+            Vector2 minorAxis = new Vector2(-majorAxis.Y, majorAxis.X); // 90° rotation
 
             for (int i = 0; i <= segmentCount; i++) {
                 float t = i / (float)segmentCount;
                 float angle = AngleStart + t * angleSpan;
-                verts[i] = new Vector2((float)(Center.X + MathF.Cos(angle) * Radius), (float)(Center.Y + MathF.Sin(angle) * Radius));
+
+                float cos = MathF.Cos(angle);
+                float sin = MathF.Sin(angle);
+
+                float x = (float)Center.X + cos * RadiusX * majorAxis.X + sin * RadiusY * minorAxis.X;
+                float y = (float)Center.Y + cos * RadiusX * majorAxis.Y + sin * RadiusY * minorAxis.Y;
+
+                verts[i] = new VertexPositionColor {
+                    Position = new Vector3(x, y, 0f),
+                    Color = Color.White
+                };
             }
+
             return verts;
         }
+        
+        public Arc ToLorentzTransformed(FrameOfReference frame) {
+            // Step 1: Lorentz transform the center
+            MinkowskiVector transformedCenter = frame.ToLocal(Center);
+
+            Vector2 velocity = frame.Velocity;
+            float speed = velocity.Length();
+
+            if (speed < 1e-5f)
+                return new Arc(transformedCenter, RadiusX, RadiusY, AngleStart, AngleEnd, Vector2.Zero);
+
+            Vector2 direction = Vector2.Normalize(velocity);
+            Vector2 perpendicular = new Vector2(-direction.Y, direction.X);
+
+            float gamma = FrameOfReference.Gamma(velocity); // 1 / sqrt(1 - v^2)
+
+            // Step 2: Construct ellipse axes analytically
+            float radiusParallel = RadiusX / gamma;
+            float radiusPerpendicular = RadiusY; // unchanged
+
+            // Optional: if RadiusX != RadiusY, treat it as a full ellipse and transform both axes
+
+            // Step 3: Reconstruct ellipse aligned to motion direction
+            // We'll use direction & perpendicular as new basis vectors
+            // and treat the ellipse as axis-aligned in this local frame
+
+            // Arc represents an ellipse oriented with the motion vector
+            return new Arc(
+                transformedCenter,
+                radiusParallel,
+                radiusPerpendicular,
+                AngleStart,
+                AngleEnd,
+                direction // add this if Arc supports orientation
+            );
+        }
+
     }
+
 
 
     public static class World { //todo: gpu compute
@@ -101,7 +171,7 @@ namespace ProjectMinkowski.Relativity {
             // TODO: implement parametric Minkowski line intersection
             return false;
         }
-
+        
         /// <summary>
         /// Returns the first intersection (if any) of a Worldline with a Worldcone shell.
         /// Equivalent to when the line "enters" the radar ping or light cone shell.
@@ -158,45 +228,59 @@ namespace ProjectMinkowski.Relativity {
             return null;
         }
 
-        // Worldcone - Worldcone
+        public static Arc? Intersects(Worldcone forward, Worldcone backwards)
+        {
+            //get the point where the cones "touch", ie when the front enters the lightcone
+            //get a slice from each cone
+            //do simple circle intersection
+            //return arc
+
+            Vector2 vForwards = new Vector2((float)forward.Apex.X, (float)forward.Apex.Y);
+            Vector2 vBackwards = new Vector2((float)backwards.Apex.X, (float)backwards.Apex.Y);
+            float tDetect = //point in time of intersection
+                (float)(((vBackwards - vForwards).Length() + forward.Angle * forward.Apex.T +
+                         backwards.Angle * backwards.Apex.T) / (forward.Angle + backwards.Angle));
+            return Intersects(forward, backwards, tDetect);
+        }
+        
         public static Arc? Intersects(Worldcone a, Worldcone b, float globalTime) {
-            Console.WriteLine($"[DEBUG] Intersecting at t = {globalTime}");
-            Console.WriteLine($"  Cone A apex = {a.Apex}, dir = {a.TemporalDirection}");
-            Console.WriteLine($"  Cone B apex = {b.Apex}, dir = {b.TemporalDirection}");
+            // Console.WriteLine($"[DEBUG] Intersecting at t = {globalTime}");
+            // Console.WriteLine($"  Cone A apex = {a.Apex}, dir = {a.TemporalDirection}");
+            // Console.WriteLine($"  Cone B apex = {b.Apex}, dir = {b.TemporalDirection}");
 
-            // Step 1: Compute spatial radius of cone A at this time
             float dtA = globalTime - (float)a.Apex.T;
-            if ((a.TemporalDirection > 0 && dtA < 0) ||
-                (a.TemporalDirection < 0 && dtA > 0) ||
-                a.TemporalDirection == 0) return null;
-
-            dtA = Math.Abs(dtA);
+            float dtB = (float)b.Apex.T - globalTime;
+            
+            if (dtA < 0 || dtB < 0)
+                return null; // One of the cones hasn't reached this time slice yet
 
             float radiusA = (float)(a.Angle * Config.C * dtA);
-            Vector2 centerA = new Vector2((float)a.Apex.X, (float)a.Apex.Y);
-
-            // Step 2: Repeat for cone B
-            float dtB = globalTime - (float)b.Apex.T;
-            if ((b.TemporalDirection > 0 && dtB < 0) ||
-                (b.TemporalDirection < 0 && dtB > 0) ||
-                b.TemporalDirection == 0) return null;
-
-            dtB = Math.Abs(dtB);
-
             float radiusB = (float)(b.Angle * Config.C * dtB);
+
+            Vector2 centerA = new Vector2((float)a.Apex.X, (float)a.Apex.Y);
             Vector2 centerB = new Vector2((float)b.Apex.X, (float)b.Apex.Y);
 
-            Console.WriteLine($"  ΔtA = {dtA}, ΔtB = {dtB}");
-            Console.WriteLine($"  RadiusA = {radiusA}, RadiusB = {radiusB}");
-            Console.WriteLine($"  CenterA = {centerA}, CenterB = {centerB}");
-            
-            // Step 3: Compute distance between centers
+            // Console.WriteLine($"  ΔtA = {dtA}, ΔtB = {dtB}");
+            // Console.WriteLine($"  RadiusA = {radiusA}, RadiusB = {radiusB}");
+            // Console.WriteLine($"  CenterA = {centerA}, CenterB = {centerB}");
+
             Vector2 offset = centerB - centerA;
             float d = offset.Length();
 
-            if (d > radiusA + radiusB || d < Math.Abs(radiusA - radiusB)) {
+            if (d > radiusA + radiusB ) {
                 // No intersection
                 return null;
+            }
+            
+            if (d < Math.Abs(radiusA - radiusB))
+            {
+                // Return a full circle from the perspective of the outer circle
+                return new Arc(
+                    new MinkowskiVector(globalTime, centerA.X, centerA.Y),
+                    radiusA,
+                    0,
+                    MathHelper.TwoPi
+                );
             }
 
             if (d < 1e-6f && Math.Abs(radiusA - radiusB) < 1e-6f) {
@@ -204,10 +288,10 @@ namespace ProjectMinkowski.Relativity {
                 return new Arc(new MinkowskiVector(globalTime, centerA.X, centerA.Y), radiusA, 0, MathHelper.TwoPi);
             }
 
-            Console.WriteLine($"  Distance between centers = {Vector2.Distance(centerA, centerB)}");
-            Console.WriteLine($"  Sum of radii = {radiusA + radiusB}"); 
-            
-            // Step 4: Compute angular span
+            // Console.WriteLine($"  Distance between centers = {d}");
+            // Console.WriteLine($"  Sum of radii = {radiusA + radiusB}");
+
+            // Compute angular span
             float a0 = MathF.Atan2(offset.Y, offset.X);
             float cosAlpha = (radiusA * radiusA + d * d - radiusB * radiusB) / (2 * radiusA * d);
             float alpha = MathF.Acos(Math.Clamp(cosAlpha, -1f, 1f));
