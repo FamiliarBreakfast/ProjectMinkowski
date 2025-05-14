@@ -16,6 +16,11 @@ public static class PlayerManager {
         var ship = new Ship(new MinkowskiVector(0, 25 * player.Id, 0), player);
         //player.Ship = ship;
         //player.ViewFrame = ship.ReferenceFrame; // bind after construction
+        for (int i = 0; i < 10; i++)
+        {
+            new Asteroid(new MinkowskiVector(0, i * 10, i * 10));
+            new Asteroid(new MinkowskiVector(0, i * -8, i * 15));
+        }
     }
 
     public static Player? GetPlayerById(int id) =>

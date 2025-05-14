@@ -89,5 +89,7 @@ public class Player { //todo: IMPORTANT! player -> viewport, ship -> player
         IntersectCones();
         //intersectCones
         //doLorentzTransformations?
+        
+        //makeAsteroids;
     }
 }

@@ -27,7 +27,7 @@ public abstract class WorldlineEntity : RenderableEntity
     }
 
     public Worldline Worldline;
-    public MinkowskiVector Origin;
+    public MinkowskiVector Origin; //origin is current position, worldline tracks previous positions
 }
 
 public abstract class WorldconeEntity : RenderableEntity

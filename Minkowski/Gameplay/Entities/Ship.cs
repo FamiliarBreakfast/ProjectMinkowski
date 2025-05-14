@@ -50,7 +50,7 @@ public class Ship : WorldlineEntity
     {
         Origin.X += Velocity.X * deltaTime;
         Origin.Y += Velocity.Y * deltaTime;
-        Origin.T += deltaTime;
+        Origin.T += deltaTime; 
         
         Frame.Lightcone.Apex.X = Origin.X; //todo: royally fucked
         Frame.Lightcone.Apex.Y = Origin.Y;
@@ -94,12 +94,13 @@ public class Ship : WorldlineEntity
             var vertices = new VertexPositionColor[] {
                 new(new Vector3(transformed[0], 0), Color),
                 new(new Vector3(transformed[1], 0), Color),
-                new(new Vector3(transformed[2], 0), Color)
+                new(new Vector3(transformed[2], 0), Color),
+                new(new Vector3(transformed[0], 0), Color)
             };
         
             foreach (var pass in effect.CurrentTechnique.Passes) {
                 pass.Apply();
-                graphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, vertices, 0, 1);
+                graphicsDevice.DrawUserPrimitives(PrimitiveType.LineStrip, vertices, 0, 3);
             }
         }
     }
