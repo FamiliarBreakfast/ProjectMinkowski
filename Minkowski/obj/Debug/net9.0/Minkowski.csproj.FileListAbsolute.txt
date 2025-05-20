@@ -1,4 +1,3 @@
-/home/anikyte/Documents/Minkowski/Minkowski/bin/Debug/net9.0/Assets/SpaceMono.ttf
 /home/anikyte/Documents/Minkowski/Minkowski/bin/Debug/net9.0/Minkowski
 /home/anikyte/Documents/Minkowski/Minkowski/bin/Debug/net9.0/Cyotek.Drawing.BitmapFont.dll
 /home/anikyte/Documents/Minkowski/Minkowski/bin/Debug/net9.0/FontStashSharp.Base.dll
@@ -38,3 +37,5 @@
 /home/anikyte/Documents/Minkowski/Minkowski/bin/Debug/net9.0/Minkowski.pdb
 /home/anikyte/Documents/Minkowski/Minkowski/obj/Debug/net9.0/Minkowski.genruntimeconfig.cache
 /home/anikyte/Documents/Minkowski/Minkowski/obj/Debug/net9.0/ref/Minkowski.dll
+/home/anikyte/Documents/Minkowski/Minkowski/bin/Debug/net9.0/Assets/Motomangucode.ttf
+/home/anikyte/Documents/Minkowski/Minkowski/bin/Debug/net9.0/Assets/SpaceMono.ttf

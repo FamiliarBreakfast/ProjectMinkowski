@@ -34,11 +34,25 @@ public class Asteroid : WorldlineEntity
         if (player.RenderedPositions.ContainsKey(this)) {
             Vector2 center = player.RenderedPositions[this];
             
+            Vector2 entityVelocity = player.VisibleVelocities[this];         // in global frame
+            Vector2 observerVelocity = player.Ship.Frame.Velocity * (float)Config.C;              // also in global frame
+
+            Vector2 relativeVelocity = entityVelocity - observerVelocity;
+            
+            Vector2[] points = new[]
+            {
+                new Vector2(center.X, center.Y+5.8f),
+                new Vector2(center.X-5f, center.Y-2.9f),
+                new Vector2(center.X+5f, center.Y-2.9f)
+            };
+            
+            Vector2[] transformed = FrameOfReference.ApplyLengthContractionInFrame(points, center, player.Ship.Frame, relativeVelocity);
+            
             var vertices = new VertexPositionColor[] {
-                new(new Vector3(center.X, center.Y+5.8f, 0), Color.Lime),
-                new(new Vector3(center.X-5f, center.Y-2.9f, 0), Color.Lime),
-                new(new Vector3(center.X+5f, center.Y-2.9f, 0), Color.Lime),
-                new(new Vector3(center.X, center.Y+5.8f, 0), Color.Lime)
+                new(new Vector3(transformed[0], 0), Color.Lime),
+                new(new Vector3(transformed[1], 0), Color.Lime),
+                new(new Vector3(transformed[2], 0), Color.Lime),
+                new(new Vector3(transformed[0], 0), Color.Lime)
             };
             
             //     Console.WriteLine(p);

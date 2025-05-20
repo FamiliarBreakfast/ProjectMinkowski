@@ -52,9 +52,16 @@ public class ProjectMinowskiGame : Game
         spriteBatch = new SpriteBatch(GraphicsDevice);
         renderer = new SplitScreenRenderer(GraphicsDevice);
 
-        fontSystem = new FontSystem();
-        fontSystem.AddFont(File.ReadAllBytes("Assets/SpaceMono.ttf")); //todo: i do not have the rights to this font
-        GameResources.DefaultFont = fontSystem.GetFont(16);  // 16 pt size
+        
+        var config = new FontSystemSettings
+        {
+            FontResolutionFactor = 2, // Default is 1; higher means sharper
+            TextureWidth = 1024,
+            TextureHeight = 1024
+        };
+        fontSystem = new FontSystem(config);
+        fontSystem.AddFont(File.ReadAllBytes("Assets/SpaceMono.ttf"));
+        GameResources.DefaultFont = fontSystem.GetFont(18);  // 16 pt size
         
         GameResources.BasicEffect = new BasicEffect(GraphicsDevice) {
             VertexColorEnabled = true,
