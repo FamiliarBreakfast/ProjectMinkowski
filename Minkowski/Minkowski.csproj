@@ -22,7 +22,10 @@
         <None Update="Assets/SpaceMono.ttf">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets/OFL.md">
+        <None Update="Assets/SpaceMonoOFL.md">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Assets/MotomangucodeLicense.txt">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
