@@ -1,3 +1,4 @@
+using Clipper2Lib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ProjectMinkowski.Relativity;
@@ -7,8 +8,7 @@ namespace ProjectMinkowski.Entities;
 
 public class Ship : WorldlineEntity
 {
-    public float Rotation;
-    //public float Acceleration;
+    public float Rotation; //todo: cleanup variables
     public Vector2 Velocity;
 
     public float ThrustPower = 10f;
@@ -22,9 +22,18 @@ public class Ship : WorldlineEntity
         Origin = absolutePosition;
         Color = PlayerColorGenerator.GetColorFromID(player.Id);
         Worldline = new Worldline();
-        // FIX: Create independent frame
         Frame = new FrameOfReference(absolutePosition, Velocity / (float)Config.C);
-    
+
+        Polygon = new PathD
+        {
+            // new PointD(0,13.33),
+            // new PointD(-10,-6.66),
+            // new PointD(10,-6.66)
+            new PointD(20,0),
+            new PointD(-6.66,10),
+            new PointD(-6.66,-10)
+        };
+        
         player.Ship = this;
     }
 
@@ -65,43 +74,25 @@ public class Ship : WorldlineEntity
     }
 
     public override void Draw(SpriteBatch spriteBatch, Player player) { }
-    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player)
+    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player, Rectangle viewport)
     {
-        
-        player.VisibleRotations.TryGetValue(this, out float rotation);
-        
-        float size = 20f;
-        if (player.RenderedPositions.ContainsKey(this)) //todo: lines instead of solid
+        WorldlineEvent? evt = Worldline.GetVisibleEvent(player.Ship.Origin);
+        if (evt != null)
         {
-            Vector2 entityVelocity = player.VisibleVelocities[this];         // in global frame
-            Vector2 observerVelocity = player.Ship.Frame.Velocity * (float)Config.C;              // also in global frame
-
-            Vector2 relativeVelocity = entityVelocity - observerVelocity;
-            //Console.WriteLine($"[Player {player.Id}] sees [{this.GetHashCode()}] with rel speed: {relativeVelocity.Length()/Config.C:0.000}c");
-            Vector2 tip = player.RenderedPositions[this] + new Vector2((float)Math.Cos(rotation), (float)Math.Sin(rotation)) * size;
-            Vector2 left = player.RenderedPositions[this] + new Vector2((float)Math.Cos(rotation + 2.5f), (float)Math.Sin(rotation + 2.5f)) * size * 0.6f;
-            Vector2 right = player.RenderedPositions[this] + new Vector2((float)Math.Cos(rotation - 2.5f), (float)Math.Sin(rotation - 2.5f)) * size * 0.6f;
-
-            Vector2[] points = new[] { tip, left, right };
-
-            //Console.WriteLine($"[Player {player.Id}] sees [{this.GetHashCode()}]");
-            //Console.WriteLine($"   Ship vel: {entityVelocity.Length()/Config.C:0.000}c");
-            //Console.WriteLine($"   Frame vel: {observerVelocity.Length()/Config.C:0.000}c");
-            //Console.WriteLine($"   Relative : {relativeVelocity.Length()/Config.C:0.000}c");
+            Vector2 relativeVelocity = evt.Velocity - player.Ship.Frame.Velocity * (float)Config.C;
             
-            Vector2[] transformed = FrameOfReference.ApplyLengthContractionInFrame(points, player.RenderedPositions[this], player.Ship.Frame, relativeVelocity);
+            var vertices =
+                Transformations.ToVertexArray(
+                    Transformations.Translate(
+                        FrameOfReference.ApplyLengthContractionInFrame(
+                            Transformations.Translate(
+                                Transformations.Rotate(Polygon, evt.Rotation),
+                                evt.Origin.X, evt.Origin.Y),
+                            new Vector2((float)evt.Origin.X, (float)evt.Origin.Y), player.Ship.Frame, relativeVelocity),
+                        -player.Ship.Origin.X, -player.Ship.Origin.Y),
+                    Color);
             
-            var vertices = new VertexPositionColor[] {
-                new(new Vector3(transformed[0], 0), Color),
-                new(new Vector3(transformed[1], 0), Color),
-                new(new Vector3(transformed[2], 0), Color),
-                new(new Vector3(transformed[0], 0), Color)
-            };
-        
-            foreach (var pass in effect.CurrentTechnique.Passes) {
-                pass.Apply();
-                graphicsDevice.DrawUserPrimitives(PrimitiveType.LineStrip, vertices, 0, 3);
-            }
+            player.Shapes.Add(vertices);
         }
     }
 }

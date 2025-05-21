@@ -1,3 +1,4 @@
+using Clipper2Lib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ProjectMinkowski.Relativity;
@@ -11,6 +12,12 @@ public class Asteroid : WorldlineEntity
     {
         Origin = absolutePosition;
         Worldline = new Worldline();
+        Polygon = new PathD
+        {
+            new PointD(0,5.8),
+            new PointD(-5,-2.9),
+            new PointD(5,-2.9)
+        };
     }
     
     public override void Update(float deltaTime)
@@ -27,45 +34,25 @@ public class Asteroid : WorldlineEntity
     public override void Draw(SpriteBatch spriteBatch, Player player)
     { }
 
-    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player)
+    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player, Rectangle viewport)
     {
-        //grab rendered position
-        //make triangle 
-        if (player.RenderedPositions.ContainsKey(this)) {
-            Vector2 center = player.RenderedPositions[this];
+        WorldlineEvent? evt = Worldline.GetVisibleEvent(player.Ship.Origin);
+        if (evt != null)
+        {
+            Vector2 relativeVelocity = evt.Velocity - player.Ship.Frame.Velocity * (float)Config.C;
             
-            Vector2 entityVelocity = player.VisibleVelocities[this];         // in global frame
-            Vector2 observerVelocity = player.Ship.Frame.Velocity * (float)Config.C;              // also in global frame
-
-            Vector2 relativeVelocity = entityVelocity - observerVelocity;
+            var vertices =
+                Transformations.ToVertexArray(
+                    Transformations.Translate(
+                        FrameOfReference.ApplyLengthContractionInFrame(
+                            Transformations.Translate(
+                                Transformations.Rotate(Polygon, evt.Rotation),
+                                evt.Origin.X, evt.Origin.Y),
+                            new Vector2((float)evt.Origin.X, (float)evt.Origin.Y), player.Ship.Frame, relativeVelocity),
+                        -player.Ship.Origin.X, -player.Ship.Origin.Y),
+                    Color.Lime);
             
-            Vector2[] points = new[]
-            {
-                new Vector2(center.X, center.Y+5.8f),
-                new Vector2(center.X-5f, center.Y-2.9f),
-                new Vector2(center.X+5f, center.Y-2.9f)
-            };
-            
-            Vector2[] transformed = FrameOfReference.ApplyLengthContractionInFrame(points, center, player.Ship.Frame, relativeVelocity);
-            
-            var vertices = new VertexPositionColor[] {
-                new(new Vector3(transformed[0], 0), Color.Lime),
-                new(new Vector3(transformed[1], 0), Color.Lime),
-                new(new Vector3(transformed[2], 0), Color.Lime),
-                new(new Vector3(transformed[0], 0), Color.Lime)
-            };
-            
-            //     Console.WriteLine(p);
-            foreach (EffectPass pass in effect.CurrentTechnique.Passes)
-            {
-                pass.Apply();
-                graphicsDevice.DrawUserPrimitives(
-                    PrimitiveType.LineStrip, // or LineList
-                    vertices,
-                    0,
-                    vertices.Length - 1      // LineStrip: count is N-1 segments
-                );
-            }
+            player.Shapes.Add(vertices);
         }
     }
 }

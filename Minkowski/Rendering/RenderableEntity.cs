@@ -1,3 +1,4 @@
+using Clipper2Lib;
 using ProjectMinkowski.Entities;
 using ProjectMinkowski.Relativity;
 
@@ -15,7 +16,7 @@ public abstract class RenderableEntity { //todo: refactor to worldline entity? i
 
     public abstract void Update(float deltaTime);
     public abstract void Draw(SpriteBatch spriteBatch, Player player);
-    public abstract void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player);
+    public abstract void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player, Rectangle viewport);
 }
 
 public abstract class WorldlineEntity : RenderableEntity
@@ -28,6 +29,7 @@ public abstract class WorldlineEntity : RenderableEntity
 
     public Worldline Worldline;
     public MinkowskiVector Origin; //origin is current position, worldline tracks previous positions
+    public PathD Polygon;
 }
 
 public abstract class WorldconeEntity : RenderableEntity

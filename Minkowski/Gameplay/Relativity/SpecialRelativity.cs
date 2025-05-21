@@ -1,4 +1,6 @@
+using Clipper2Lib;
 using Microsoft.Xna.Framework;
+using ProjectMinkowski.Rendering;
 
 namespace ProjectMinkowski.Relativity;
 
@@ -100,17 +102,40 @@ public class MinkowskiVector {
     public override string ToString() => $"(T={T:F3}, X={X:F3}, Y={Y:F3})";
 }
 
-public class WorldlineEvent
+public class WorldlineEvent //todo: more complex class that updates data only when necessary
 {
-    public MinkowskiVector Origin;
+    public double Time;
+    public Vector2 Position = new Vector2();
     public float Rotation;
-    public Vector2 Velocity;
+    public Vector2 Velocity = new Vector2();
+    public byte Flags;
 
-    public WorldlineEvent(MinkowskiVector origin, float rotation, Vector2 velocity)
+    public MinkowskiVector Origin => new(Time, Position.X, Position.Y);
+
+    public WorldlineEvent(WorldlineEntity entity, Vector2 velocity, byte flags = 0)
     {
-        Origin = origin;
+        Time = entity.Origin.T;
+        Position.X = (float)entity.Origin.X;
+        Position.Y = (float)entity.Origin.Y;
+        Velocity = velocity;
+        Flags = flags;
+    }
+    public WorldlineEvent(MinkowskiVector origin, float rotation, Vector2 velocity, byte flags = 0)
+    {
+        Time = origin.T;
+        Position.X = (float)origin.X;
+        Position.Y = (float)origin.Y;
         Rotation = rotation;
         Velocity = velocity;
+        Flags = flags;
+    }
+    public WorldlineEvent(double time, Vector2 position, float rotation, Vector2 velocity, byte flags = 0)
+    {
+        Time = time;
+        Position = position;
+        Velocity = velocity;
+        Rotation = rotation;
+        Flags = flags;
     }
 }
 
@@ -146,13 +171,14 @@ public class FrameOfReference
         var transformed = localEvent.LorentzFrom(Velocity);
         return transformed + Lightcone.Apex;
     }
-
-    public static Vector2[] ApplyLengthContractionInFrame(
-        Vector2[] vertices,
-        Vector2 center,
+    
+    public static PathD ApplyLengthContractionInFrame(
+        PathD path,
+        Vector2 centerV,
         FrameOfReference observerFrame,
         Vector2 objectVelocityGlobal
-    ) {
+    )
+    {
         // Step 1: Transform object's global velocity to observer frame
         Vector2 relativeVelocity = objectVelocityGlobal - observerFrame.Velocity;
 
@@ -160,16 +186,21 @@ public class FrameOfReference
         float c = (float)Config.C;
 
         if (speedSq == 0 || speedSq >= c * c)
-            return (Vector2[])vertices.Clone();
+            return new PathD(path); // Just copy the original path
 
         float gamma = 1f / MathF.Sqrt(1f - speedSq / (c * c));
         float contraction = 1f / gamma;
 
         Vector2 direction = Vector2.Normalize(relativeVelocity);
-        var contracted = new Vector2[vertices.Length];
 
-        for (int i = 0; i < vertices.Length; i++) {
-            Vector2 relative = vertices[i] - center;
+        PathD contracted = new PathD(path.Count);
+
+        for (int i = 0; i < path.Count; i++)
+        {
+            // Convert point to Vector2 for math
+            Vector2 v = new Vector2((float)path[i].x, (float)path[i].y);
+
+            Vector2 relative = v - centerV;
 
             // Project onto direction of motion
             float parallelMag = Vector2.Dot(relative, direction);
@@ -178,11 +209,14 @@ public class FrameOfReference
 
             // Contract the parallel component
             Vector2 contractedRelative = orthogonal + parallel * contraction;
-            contracted[i] = center + contractedRelative;
+            Vector2 contractedV = centerV + contractedRelative;
+
+            contracted.Add(new PointD(contractedV.X, contractedV.Y));
         }
 
         return contracted;
     }
+
 
     
     public override string ToString() =>

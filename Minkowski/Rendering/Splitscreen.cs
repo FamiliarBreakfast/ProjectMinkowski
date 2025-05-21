@@ -23,14 +23,14 @@ public class SplitScreenRenderer {
             var viewport = GetHardcodedViewport(i, players.Count, _graphics);
             _graphics.Viewport = new Viewport(viewport);
 
-            CenterTransformedPositions(players[i], viewport);
-            RenderPlayerView(players[i], batch);
+            //CenterTransformedPositions(players[i], viewport);
+            RenderPlayerView(players[i], batch, viewport);
         }
 
         _graphics.Viewport = originalViewport;
     }
 
-    private void RenderPlayerView(Player player, SpriteBatch batch) {
+    private void RenderPlayerView(Player player, SpriteBatch batch, Rectangle viewport) {
         var effect = GameResources.BasicEffect!;
         var graphics = _graphics;
 
@@ -50,7 +50,22 @@ public class SplitScreenRenderer {
         batch.End();
         
         foreach (var entity in RenderableEntity.Instances) {
-            entity.VertexDraw(graphics, effect, player);
+            entity.VertexDraw(graphics, effect, player, viewport);
+        }
+        
+        foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+        {
+            foreach (VertexPositionColor[] shape in player.Shapes)
+            {
+                pass.Apply();
+                graphics.DrawUserPrimitives(
+                    PrimitiveType.LineStrip, // or LineList
+                    shape,
+                    0,
+                    shape.Length - 1 // LineStrip: count is N-1 segments
+                );
+            }
+            player.Shapes.Clear();
         }
         
         batch.Begin(samplerState: SamplerState.PointClamp);
@@ -63,19 +78,19 @@ public class SplitScreenRenderer {
         batch.Begin();
     }
 
-    private void CenterTransformedPositions(Player player, Rectangle viewport) {
-        float halfWidth = viewport.Width / 2f;
-        float halfHeight = viewport.Height / 2f;
-
-        player.RenderedPositions.Clear();
-
-        foreach (var (entity, localPos) in player.TransformedPositions)
-        {
-            var screenX = (float)localPos.X;
-            var screenY = (float)localPos.Y;
-            player.RenderedPositions[entity] = new Vector2(screenX, screenY);
-        }
-    }
+    // private void CenterTransformedPositions(Player player, Rectangle viewport) {
+    //     float halfWidth = viewport.Width / 2f;
+    //     float halfHeight = viewport.Height / 2f;
+    //
+    //     player.RenderedPositions.Clear();
+    //
+    //     foreach (var (entity, localPos) in player.TransformedPositions)
+    //     {
+    //         var screenX = (float)localPos.X;
+    //         var screenY = (float)localPos.Y;
+    //         player.RenderedPositions[entity] = new Vector2(screenX, screenY);
+    //     }
+    // }
     
     private static Rectangle GetHardcodedViewport(int index, int count, GraphicsDevice gd) {
         int w = gd.PresentationParameters.BackBufferWidth;

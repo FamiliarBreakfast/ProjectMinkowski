@@ -1,3 +1,4 @@
+using Clipper2Lib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FontStashSharp;
@@ -27,10 +28,7 @@ public class Player { //todo: IMPORTANT! player -> viewport, ship -> player
     public int Id { get; }
     public string Name { get; set; }
     public Ship Ship;
-    public Dictionary<RenderableEntity, MinkowskiVector> TransformedPositions { get; } = new(); //entity positions transformed to the current players frame of reference
-    public Dictionary<RenderableEntity, Vector2> RenderedPositions { get; } = new(); //transformed positions converted to vector2 rendering positions
-    public Dictionary<RenderableEntity, float> VisibleRotations { get; } = new();
-    public Dictionary<RenderableEntity, Vector2> VisibleVelocities { get; } = new(); //todo: fix ineffiecient use of dicts (tuple?)
+    public List<VertexPositionColor[]> Shapes = new();
     public Dictionary<WorldconeEntity, Arc> TransformedArcs { get; } = new();
 
     
@@ -39,57 +37,8 @@ public class Player { //todo: IMPORTANT! player -> viewport, ship -> player
         Name = name;
     }
 
-    private void IntersectLines()
-    {
-        //get our worldcone
-        //for entity in worldlineentity instances
-        //run World.Intersects(instance, worldcone)
-        //if it does
-        //get its minkowskivector
-        //transform it
-        //store it for rendering
-        foreach (var entity in WorldlineEntity.Instances)
-        {
-            if (entity.Worldline.Events.Count > 0) {
-                WorldlineEvent? evt = World.Intersects(entity.Worldline, Ship.Frame.Lightcone);
-                if (evt != null)
-                {
-                    TransformedPositions[entity] = Ship.Frame.ToLocal(evt.Origin);
-                    VisibleRotations[entity] = evt.Rotation; //todo: arbitrary event data?
-                    VisibleVelocities[entity] = evt.Velocity;
-                }
-            }
-        }
-    }
-
-    private void IntersectCones()
-    {
-        //get our worldcone
-        //for entity in worldconeentity instances
-        //run World.Intersects(worldcone, worldcone)
-        //if it does
-        //get its arc
-        //transform it
-        //store it for rendering
-        foreach (var entity in WorldconeEntity.Instances)
-        {
-            Arc? arc = World.Intersects(entity.Worldcone, Ship.Frame.Lightcone);
-            if (arc != null)
-            {
-                Arc transform = arc.ToLorentzTransformed(Ship.Frame);
-                TransformedArcs[entity] = transform;
-            }
-        }
-    }
-
     public void Update(float deltaTime)
     {
         Ship.Frame.Lightcone.Apex.T += deltaTime; //ensure we proceed forward through time. generally considered a good thing
-        IntersectLines();
-        IntersectCones();
-        //intersectCones
-        //doLorentzTransformations?
-        
-        //makeAsteroids;
     }
 }

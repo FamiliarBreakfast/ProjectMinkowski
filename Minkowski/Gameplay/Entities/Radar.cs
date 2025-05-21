@@ -20,7 +20,7 @@ public class Radar : WorldconeEntity
 
     public override void Draw(SpriteBatch spriteBatch, Player player) { }
 
-    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player)
+    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player, Rectangle viewport)
     {
         if (player.TransformedArcs.ContainsKey(this)) {
             Arc arc = player.TransformedArcs[this];

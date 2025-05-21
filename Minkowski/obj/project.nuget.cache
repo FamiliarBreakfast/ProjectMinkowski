@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "km6L6GDjYH8=",
+  "dgSpecHash": "A6W2kF9uxsc=",
   "success": true,
   "projectFilePath": "/home/anikyte/Documents/Minkowski/Minkowski/Minkowski.csproj",
   "expectedPackageFiles": [
+    "/home/anikyte/.nuget/packages/clipper2/1.5.3/clipper2.1.5.3.nupkg.sha512",
     "/home/anikyte/.nuget/packages/cyotek.drawing.bitmapfont/2.0.4/cyotek.drawing.bitmapfont.2.0.4.nupkg.sha512",
     "/home/anikyte/.nuget/packages/fontstashsharp.base/1.1.9/fontstashsharp.base.1.1.9.nupkg.sha512",
     "/home/anikyte/.nuget/packages/fontstashsharp.monogame/1.3.10/fontstashsharp.monogame.1.3.10.nupkg.sha512",

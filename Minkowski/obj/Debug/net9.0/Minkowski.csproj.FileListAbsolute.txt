@@ -39,3 +39,5 @@
 /home/anikyte/Documents/Minkowski/Minkowski/obj/Debug/net9.0/ref/Minkowski.dll
 /home/anikyte/Documents/Minkowski/Minkowski/bin/Debug/net9.0/Assets/Motomangucode.ttf
 /home/anikyte/Documents/Minkowski/Minkowski/bin/Debug/net9.0/Assets/SpaceMono.ttf
+/home/anikyte/Documents/Minkowski/Minkowski/bin/Debug/net9.0/Assets/OFL.md
+/home/anikyte/Documents/Minkowski/Minkowski/bin/Debug/net9.0/Clipper2Lib.dll

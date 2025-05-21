@@ -2,6 +2,15 @@
   "version": 3,
   "targets": {
     "net9.0": {
+      "Clipper2/1.5.3": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/Clipper2Lib.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/Clipper2Lib.dll": {}
+        }
+      },
       "Cyotek.Drawing.BitmapFont/2.0.4": {
         "type": "package",
         "compile": {
@@ -204,6 +213,21 @@
     }
   },
   "libraries": {
+    "Clipper2/1.5.3": {
+      "sha512": "C+qQI5FmcleFfLeoEBhfiOdiLV3sFpX9GxcBH1iVBpiJ+bre5UoJ+DQqToypHzXWoZMGVforVjjasW0bewUFcQ==",
+      "type": "package",
+      "path": "clipper2/1.5.3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "License.txt",
+        "README.md",
+        "clipper2.1.5.3.nupkg.sha512",
+        "clipper2.nuspec",
+        "icon.png",
+        "lib/netstandard2.0/Clipper2Lib.dll"
+      ]
+    },
     "Cyotek.Drawing.BitmapFont/2.0.4": {
       "sha512": "iA6WehGVdMUuNbfsQQDq/Bt+mMd/OqHjiMUtKFLIQd/0pyYh4ehT7FEjTxN9/4OXNKQZsp9bAJgltP2nnswUJg==",
       "type": "package",
@@ -467,6 +491,7 @@
   },
   "projectFileDependencyGroups": {
     "net9.0": [
+      "Clipper2 >= 1.5.3",
       "FontStashSharp.MonoGame >= 1.3.10",
       "MathNet.Numerics >= 6.0.0-beta2",
       "MonoGame.Framework.DesktopGL >= 3.8.4-preview.1"
@@ -515,6 +540,10 @@
       "net9.0": {
         "targetAlias": "net9.0",
         "dependencies": {
+          "Clipper2": {
+            "target": "Package",
+            "version": "[1.5.3, )"
+          },
           "FontStashSharp.MonoGame": {
             "target": "Package",
             "version": "[1.3.10, )"

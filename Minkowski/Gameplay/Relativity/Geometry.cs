@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using System;
+using Clipper2Lib;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace ProjectMinkowski.Relativity {
@@ -12,6 +13,37 @@ namespace ProjectMinkowski.Relativity {
 
         public void Prune(float currentTime, float maxAge = 30f) {
             Events.RemoveAll(e => currentTime - e.Origin.T > maxAge);
+        }
+        
+        public WorldlineEvent? GetVisibleEvent(MinkowskiVector origin)
+        {
+            Vector2 observerPos = new Vector2((float)origin.X, (float)origin.Y);
+            float observerTime = (float)origin.T;
+            if (Events.Count == 0)
+                return null;
+
+            int low = 0;
+            int high = Events.Count - 1;
+            int resultIndex = -1;
+
+            while (low <= high)
+            {
+                int mid = (low + high) / 2;
+                var evt = Events[mid];
+                double arrivalTime = evt.Time + Vector2.Distance(observerPos, evt.Position) / Config.C;
+
+                if (arrivalTime <= observerTime)
+                {
+                    resultIndex = mid;
+                    low = mid + 1; // Try to find a later visible event
+                }
+                else
+                {
+                    high = mid - 1; // Too early
+                }
+            }
+
+            return resultIndex >= 0 ? Events[resultIndex] : null;
         }
     }
     
@@ -163,7 +195,42 @@ namespace ProjectMinkowski.Relativity {
 
     }
 
+    public static class Transformations
+    {
+        public static PathD Translate(PathD path, double dx, double dy)
+        {
+            return new PathD(path.Select(p => new PointD(p.x + dx, p.y + dy)));
+        }
+        
+        public static PathD Rotate(PathD path, double angleRadians)
+        {
+            double cos = Math.Cos(angleRadians);
+            double sin = Math.Sin(angleRadians);
 
+            return new PathD(path.Select(p =>
+                new PointD(
+                    p.x * cos - p.y * sin,
+                    p.x * sin + p.y * cos
+                )
+            ));
+        }
+        
+        public static VertexPositionColor[] ToVertexArray(
+            PathD path, Color color, float z = 0f)
+        {
+            var verts = new VertexPositionColor[path.Count + 1];
+            for (int i = 0; i < path.Count; i++)
+            {
+                var p = path[i];
+                verts[i] = new VertexPositionColor(
+                    new Vector3((float)p.x, (float)p.y, z),
+                    color
+                );
+            }
+            verts[path.Count] = verts[0];
+            return verts;
+        }
+    }
 
     public static class World { //todo: gpu compute
         // Worldline - Worldline
