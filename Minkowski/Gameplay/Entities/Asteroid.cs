@@ -18,6 +18,7 @@ public class Asteroid : WorldlineEntity
             new PointD(-5,-2.9),
             new PointD(5,-2.9)
         };
+        Radius = 6;
     }
     
     public override void Update(float deltaTime)

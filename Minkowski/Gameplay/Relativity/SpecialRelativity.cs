@@ -100,6 +100,8 @@ public class MinkowskiVector {
         new(a.T * scalar, a.X * scalar, a.Y * scalar);
 
     public override string ToString() => $"(T={T:F3}, X={X:F3}, Y={Y:F3})";
+
+    public Vector2 ToVector2() => new Vector2((float)X, (float)Y);
 }
 
 public class WorldlineEvent //todo: more complex class that updates data only when necessary

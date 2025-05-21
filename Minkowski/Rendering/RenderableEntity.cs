@@ -30,6 +30,7 @@ public abstract class WorldlineEntity : RenderableEntity
     public Worldline Worldline;
     public MinkowskiVector Origin; //origin is current position, worldline tracks previous positions
     public PathD Polygon;
+    public int Radius = 20;
 }
 
 public abstract class WorldconeEntity : RenderableEntity

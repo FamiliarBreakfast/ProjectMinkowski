@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using FontStashSharp;
+using ProjectMinkowski.Gameplay;
 using ProjectMinkowski.Multiplayer.Local;
 using ProjectMinkowski.Rendering;
 using ProjectMinkowski.Rendering.SplitScreen;
@@ -23,7 +24,7 @@ public static class Config
     /// <summary>
     /// The speed of light, in space units per time unit (e.g. 10 means light moves 10 units/sec).
     /// </summary>
-    public static double C = 25;
+    public const int C = 25;
 }
 
 public static class GameResources {
@@ -88,6 +89,8 @@ public class ProjectMinowskiGame : Game
         {
             entity.Update(dt);
         }
+        
+        CollisionManager.Update(dt);
         
     }
 
