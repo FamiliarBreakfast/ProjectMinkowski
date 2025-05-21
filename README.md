@@ -2,7 +2,7 @@
 
 ***Project Minkowski*** is in a very early stage, and needs a lot of code cleanup (especially from someone who understands relativity better than me).
 
-***Project Minkowski*** is licensed under the **AGPL-V3**.
+***Project Minkowski*** is licensed under the **AGPL-V3**, except where otherwise noted.
   
   
   
