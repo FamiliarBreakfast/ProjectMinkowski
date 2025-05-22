@@ -1,5 +1,6 @@
 using Clipper2Lib;
 using Microsoft.Xna.Framework;
+using ProjectMinkowski.Entities;
 using ProjectMinkowski.Relativity;
 using ProjectMinkowski.Rendering;
 
@@ -13,9 +14,19 @@ public static class CollisionManager
         {
             for (int j = i + 1; j < WorldlineEntity.Instances.Count; j++)
             {
+                
                 if (Collide(WorldlineEntity.Instances[i], WorldlineEntity.Instances[j]))
                 {
-                    Console.WriteLine("Collided");
+                    Console.WriteLine("Collids");
+                    if (WorldlineEntity.Instances[i] is Ship ship && WorldlineEntity.Instances[j] is Bullet bullet)
+                    {
+                        if (bullet.Ship != ship)
+                        {
+                            ship.Health -= 10;
+                            WorldlineEntity.Instances.RemoveAt(j);
+                            RenderableEntity.Instances.RemoveAt(j);
+                        }
+                    }
                 }
             }
         }

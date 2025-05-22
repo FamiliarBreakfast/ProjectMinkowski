@@ -11,6 +11,8 @@ public class Ship : WorldlineEntity
     public float Rotation; //todo: cleanup variables
     public Vector2 Velocity;
 
+    public int Health = 100;
+    
     public float ThrustPower = 10f;
     public float StrafePower = 3f;
     public float RotationSpeed = 2f;
@@ -20,21 +22,18 @@ public class Ship : WorldlineEntity
 
     public Ship(MinkowskiVector absolutePosition, Player player) {
         Origin = absolutePosition;
-        Color = PlayerColorGenerator.GetColorFromID(player.Id);
         Worldline = new Worldline();
-        Frame = new FrameOfReference(absolutePosition, Velocity / (float)Config.C);
+        Frame = new FrameOfReference(absolutePosition, Velocity);
+        player.Ship = this;
+        
+        Color = PlayerColorGenerator.GetColorFromID(player.Id);
 
         Polygon = new PathD
         {
-            // new PointD(0,13.33),
-            // new PointD(-10,-6.66),
-            // new PointD(10,-6.66)
             new PointD(20,0),
             new PointD(-6.66,10),
             new PointD(-6.66,-10)
         };
-        
-        player.Ship = this;
     }
 
     public void ApplyMovement(float dt, float forwardInput, float strafeInput, float rotateInput) {
@@ -61,15 +60,15 @@ public class Ship : WorldlineEntity
         Origin.Y += Velocity.Y * deltaTime;
         Origin.T += deltaTime; 
         
-        Frame.Lightcone.Apex.X = Origin.X; //todo: royally fucked
+        Frame.Lightcone.Apex.X = Origin.X;
         Frame.Lightcone.Apex.Y = Origin.Y;
         Frame.Velocity = Velocity;
         
-            Worldline.AddEvent(new WorldlineEvent(
-                new MinkowskiVector(Origin.T, Origin.X, Origin.Y),
-                Rotation,
-                Velocity
-            ));
+        Worldline.AddEvent(new WorldlineEvent(
+            new MinkowskiVector(Origin.T, Origin.X, Origin.Y),
+            Rotation,
+            Velocity
+        ));
         //Console.WriteLine($"[Ship {GetHashCode()}] added event: Vel = {Velocity.Length():0.000} | T = {AbsolutePosition.T:0.000}");
     }
 
