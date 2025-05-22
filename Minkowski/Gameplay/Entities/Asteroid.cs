@@ -40,8 +40,6 @@ public class Asteroid : WorldlineEntity
         WorldlineEvent? evt = Worldline.GetVisibleEvent(player.Ship.Origin);
         if (evt != null)
         {
-            Vector2 relativeVelocity = evt.Velocity - player.Ship.Frame.Velocity * (float)Config.C;
-            
             var vertices =
                 Transformations.ToVertexArray(
                     Transformations.Translate(
@@ -49,7 +47,7 @@ public class Asteroid : WorldlineEntity
                             Transformations.Translate(
                                 Transformations.Rotate(Polygon, evt.Rotation),
                                 evt.Origin.X, evt.Origin.Y),
-                            new Vector2((float)evt.Origin.X, (float)evt.Origin.Y), player.Ship.Frame, relativeVelocity),
+                            new Vector2((float)evt.Origin.X, (float)evt.Origin.Y), player.Ship.Frame, evt.Velocity),
                         -player.Ship.Origin.X, -player.Ship.Origin.Y),
                     Color.Lime);
             

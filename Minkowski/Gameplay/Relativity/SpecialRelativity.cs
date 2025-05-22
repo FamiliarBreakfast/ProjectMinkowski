@@ -174,6 +174,35 @@ public class FrameOfReference
         return transformed + Lightcone.Apex;
     }
     
+    public Vector2 LorentzTransformVelocity(Vector2 globalVelocity)
+    {
+        float c = (float)Config.C;
+        Vector2 u = this.Velocity; // frame's velocity (what we're boosting against)
+
+        float uSq = u.LengthSquared();
+        if (uSq == 0f)
+            return globalVelocity;
+
+        float gamma = 1f / MathF.Sqrt(1f - uSq / (c * c));
+        float dot = Vector2.Dot(globalVelocity, u);
+        float uLen = MathF.Sqrt(uSq);
+
+        // Project v into components
+        Vector2 uHat = u / uLen;
+        Vector2 vParallel = Vector2.Dot(globalVelocity, uHat) * uHat;
+        Vector2 vPerp = globalVelocity - vParallel;
+
+        // Apply relativistic formulas
+        float denom = 1f - dot / (c * c);
+        if (MathF.Abs(denom) < 1e-6f)
+            denom = 1e-6f * MathF.Sign(denom); // clamp to avoid divide-by-zero
+
+        Vector2 vPrimeParallel = (vParallel - u) / denom;
+        Vector2 vPrimePerp = vPerp / (gamma * denom);
+
+        return vPrimeParallel + vPrimePerp;
+    }
+    
     public static PathD ApplyLengthContractionInFrame(
         PathD path,
         Vector2 centerV,
@@ -182,12 +211,13 @@ public class FrameOfReference
     )
     {
         // Step 1: Transform object's global velocity to observer frame
-        Vector2 relativeVelocity = objectVelocityGlobal - observerFrame.Velocity;
+        //Vector2 relativeVelocity = objectVelocityGlobal - observerFrame.Velocity;
+        Vector2 relativeVelocity = observerFrame.LorentzTransformVelocity(objectVelocityGlobal);
 
         float speedSq = relativeVelocity.LengthSquared();
         float c = (float)Config.C;
 
-        if (speedSq == 0 || speedSq >= c * c)
+        if (speedSq < 1e-10 || speedSq >= c * c)
             return new PathD(path); // Just copy the original path
 
         float gamma = 1f / MathF.Sqrt(1f - speedSq / (c * c));
