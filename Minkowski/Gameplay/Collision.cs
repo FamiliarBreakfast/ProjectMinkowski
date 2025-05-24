@@ -1,5 +1,6 @@
 using Clipper2Lib;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using ProjectMinkowski.Entities;
 using ProjectMinkowski.Relativity;
 using ProjectMinkowski.Rendering;
@@ -10,24 +11,22 @@ public static class CollisionManager
 {
     public static void Update(float dt)
     {
-        for (int i = 0; i < WorldlineEntity.Instances.Count; i++)
+        foreach (WorldlineEntity entity in WorldlineEntity.Instances) 
         {
-            for (int j = i + 1; j < WorldlineEntity.Instances.Count; j++)
+            foreach (TracerEntity tracer in TracerEntity.Instances)
             {
-                
-                if (Collide(WorldlineEntity.Instances[i], WorldlineEntity.Instances[j]))
-                {
-                    Console.WriteLine("Collids");
-                    if (WorldlineEntity.Instances[i] is Ship ship && WorldlineEntity.Instances[j] is Bullet bullet)
-                    {
-                        if (bullet.Ship != ship)
-                        {
-                            ship.Health -= 10;
-                            WorldlineEntity.Instances.RemoveAt(j);
-                            RenderableEntity.Instances.RemoveAt(j);
-                        }
-                    }
-                }
+                // if (Collide(entity, tracer))
+                // {
+                //     //entity.Collide(tracer);
+                //     Console.WriteLine("Shot!");
+                //     Ship? ship = (Ship)entity;
+                //     if (entity != null)
+                //     {
+                //         new BulletTracer(ship.Owner, entity.Origin.ToVector2(), tracer.Line.Phi);
+                //     }
+                //     Console.WriteLine("Shot!");
+                //     //tracer.Line.SetEndTime((float)entity.Origin.T);
+                // }
             }
         }
     }
@@ -38,6 +37,24 @@ public static class CollisionManager
         {
             PathsD solution = Clipper.Intersect(new PathsD() {Transformations.Translate(a.Polygon, a.Origin.X, a.Origin.Y)}, new PathsD() {Transformations.Translate(b.Polygon, b.Origin.X, b.Origin.Y)}, FillRule.NonZero);
             return solution.Count > 0;
+        }
+        return false;
+    }
+    public static bool Collide(WorldlineEntity a, TracerEntity b)
+    {
+        if (b is Bullet bullet)
+        {
+            if (a is Ship ship)
+            {
+                if (bullet.Ship == ship)
+                {
+                    return false;
+                }
+            }
+        }
+        if (b.Line.Intersects(a.Origin))
+        {
+            return true;
         }
         return false;
     }

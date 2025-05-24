@@ -1,4 +1,3 @@
-using Clipper2Lib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ProjectMinkowski.Relativity;
@@ -6,77 +5,47 @@ using ProjectMinkowski.Rendering;
 
 namespace ProjectMinkowski.Entities;
 
-public class Bullet : WorldlineEntity
+public class Bullet : TracerEntity
 {
-    public const int bulletSpeed = 25;
-    
-    public float Rotation;
-    public Vector2 Velocity;
-
+    public List<BulletTracer> Tracers = new();
     public Ship Ship;
     
-    public Color Color;
-    public Bullet(MinkowskiVector absolutePosition, Ship ship)
+    public Bullet(MinkowskiVector origin, Ship ship)
     {
         Ship = ship;
-        
-        Origin = absolutePosition;
-        Worldline = new Worldline();
-        Color = ship.Color;
-        
-        Rotation = ship.Rotation;
-        Velocity = ship.Velocity;
-        
-        Vector2 vPrime = new Vector2(MathF.Cos(Rotation) * bulletSpeed, MathF.Sin(Rotation) * bulletSpeed);
-        float c = Config.C;
-
-        if (Velocity.LengthSquared() < 1e-6f)
-        {
-            Velocity = vPrime;
-        }
-        else
-        {
-            // Unit vector of ship's velocity
-            Vector2 uHat = Velocity / Velocity.Length();
-            float uMag = Velocity.Length();
-
-            // Parallel component
-            float vPrimeParallelMag = Vector2.Dot(vPrime, uHat);
-            Vector2 vPrimeParallel = vPrimeParallelMag * uHat;
-
-            // Perpendicular component
-            Vector2 vPrimePerp = vPrime - vPrimeParallel;
-
-            // Relativistic addition for parallel component:
-            float vParallel = (vPrimeParallelMag + uMag) / (1 + (uMag * vPrimeParallelMag) / (c * c));
-
-            // Relativistic addition for perpendicular component:
-            float gamma = 1f / MathF.Sqrt(1f - (uMag * uMag) / (c * c));
-            Vector2 vPerp = vPrimePerp / (gamma * (1 + (uMag * vPrimeParallelMag) / (c * c)));
-
-            // Add together for world velocity:
-            Velocity = vParallel * uHat + vPerp;
-        }
-
-        Polygon = new PathD
-        {
-            new PointD(15,0),
-            new PointD(-15,1),
-            new PointD(-15,-1)
-        };
+        Line = new Line(origin, Config.C, Ship.Rotation);
     }
+    
+    public override void Update(float deltaTime)
+    { }
 
+    public override void Draw(SpriteBatch spriteBatch, Player player)
+    { }
+
+    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player, Rectangle viewport)
+    { }
+}
+
+public class BulletTracer : WorldlineEntity
+{
+    public Player Player;
+    public Vector2 Origin;
+    public float Rotation;
+    public Color Color;
+
+    private int _fadeTimer;
+    public BulletTracer(Player player, Vector2 origin, float rotation)
+    {
+        Player = player;
+        Origin = origin;
+        Rotation = rotation;
+        Color = player.Ship.Color;
+        _fadeTimer = 100;
+    }
+    
     public override void Update(float deltaTime)
     {
-        Origin.X += Velocity.X * deltaTime;
-        Origin.Y += Velocity.Y * deltaTime;
-        Origin.T += deltaTime;
-        
-        Worldline.AddEvent(new WorldlineEvent(
-            new MinkowskiVector(Origin.T, Origin.X, Origin.Y),
-            Rotation,
-            Velocity
-        ));
+        _fadeTimer--;
     }
 
     public override void Draw(SpriteBatch spriteBatch, Player player)
@@ -84,21 +53,34 @@ public class Bullet : WorldlineEntity
 
     public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player, Rectangle viewport)
     {
-        WorldlineEvent? evt = Worldline.GetVisibleEvent(player.Ship.Origin);
-        if (evt != null)
-        {
-            var vertices =
-                Transformations.ToVertexArray(
-                    Transformations.Translate(
-                        FrameOfReference.ApplyLengthContractionInFrame(
-                            Transformations.Translate(
-                                Transformations.Rotate(Polygon, evt.Rotation),
-                                evt.Origin.X, evt.Origin.Y),
-                            new Vector2((float)evt.Origin.X, (float)evt.Origin.Y), player.Ship.Frame, evt.Velocity),
-                        -player.Ship.Origin.X, -player.Ship.Origin.Y),
-                    Color);
+            //compute endpoint
+            //center in viewport????
+            //profit?????????????
+            
+            float tracerLength = 150f; // Or whatever length looks good for your game
+
+            // Compute the vector for the tracer's direction
+            Vector2 direction = new Vector2(MathF.Cos(Rotation), MathF.Sin(Rotation));
+
+            // Start and end points in world coordinates
+            Vector2 worldStart = Origin;
+            Vector2 worldEnd = Origin + direction * tracerLength;
+
+            // Convert to screen coordinates (player centered)
+            Vector2 screenStart = worldStart - new Vector2((float)player.Ship.Origin.X, (float)player.Ship.Origin.Y);
+            Vector2 screenEnd   = worldEnd   - new Vector2((float)player.Ship.Origin.X, (float)player.Ship.Origin.Y);
+
+            // Optionally, add offset to place the player in the screen center
+            // var viewportCenter = new Vector2(viewport.Width / 2, viewport.Height / 2);
+            // screenStart += viewportCenter;
+            // screenEnd   += viewportCenter;
+
+            // Build vertex array for the line
+            VertexPositionColor[] vertices = new VertexPositionColor[2];
+            vertices[0] = new VertexPositionColor(new Vector3(screenStart, 0), Color);
+            vertices[1] = new VertexPositionColor(new Vector3(screenEnd, 0), Color);
             
             player.Shapes.Add(vertices);
-        }
+        
     }
 }

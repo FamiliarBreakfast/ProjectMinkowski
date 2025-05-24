@@ -1,9 +1,60 @@
 using Microsoft.Xna.Framework;
-using System;
 using Clipper2Lib;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace ProjectMinkowski.Relativity {
+
+    public class Line
+    {
+        public MinkowskiVector Origin;
+        public float Theta; //speed
+        public float Phi; //rotation
+        public float Length;
+
+        public Vector3 Direction;
+
+        public Line(MinkowskiVector origin, float theta, float phi, float length = 10000)
+        {
+            Origin = origin;
+            Theta = theta;
+            Phi = phi;
+            Length = length;
+        }
+
+        public void SetEndTime(float time)
+        {
+            Length = (float)(time - Origin.T);
+        }
+
+        public bool Intersects(MinkowskiVector point, int radius = 20)
+        {
+            Direction = new Vector3(
+                (float)Math.Cos(Theta),
+                (float)(Math.Sin(Theta) * Math.Cos(Phi)),
+                (float)(Math.Sin(Theta) * Math.Sin(Phi))
+            );
+            Vector3 v = (point - Origin).ToVector3();
+            float dot = Vector3.Dot(v, Direction);
+            float s = Math.Max(0, Math.Min(Length, dot));
+            Vector3 C = Origin.ToVector3() + s * Direction;
+            double check = Math.Pow(C.Z - point.T, 2) + Math.Pow(C.X - point.X, 2) + Math.Pow(C.Y - point.Y, 2);
+            if (check < Math.Pow(radius, 2))
+            {
+                return true;
+            }
+            return false;
+        }
+        
+        public float? RotationAtZ(double time)
+        {
+            if (time > Origin.T && time < (Origin.T + Length))
+            {
+                return Phi;
+            }
+            return null;
+        }
+    }
+    
     public class Worldline {
         public List<WorldlineEvent> Events { get; } = new();
 

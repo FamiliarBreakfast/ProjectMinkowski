@@ -55,17 +55,27 @@ public class MinkowskiVector {
         if (vMag == 0) return this;
 
         double gamma = Gamma(vMag);
-        double vx = frameVelocity.X;
-        double vy = frameVelocity.Y;
 
-        double vDotR = vx * X + vy * Y;
+        // dot product v · r
+        double vDotR = frameVelocity.X * X + frameVelocity.Y * Y;
+        double c2 = Config.C * Config.C;
 
-        double tPrime = gamma * (T - vDotR);
-        double xPrime = X + ((gamma - 1) * vDotR / (vMag * vMag) - gamma * T) * vx;
-        double yPrime = Y + ((gamma - 1) * vDotR / (vMag * vMag) - gamma * T) * vy;
+        // t' = γ (t - (v · r)/c²)
+        double tPrime = gamma * (T - vDotR / c2);
+
+        // Spatial transform
+        double coeff = (gamma - 1) / (vMag * vMag);
+        double xPrime = X + coeff * vDotR * frameVelocity.X - gamma * T * frameVelocity.X;
+        double yPrime = Y + coeff * vDotR * frameVelocity.Y - gamma * T * frameVelocity.Y;
+
+        // Scale by 1/c for the gamma * T * v subtraction (units: time * velocity = distance)
+        xPrime += ( - gamma * T * frameVelocity.X );
+        yPrime += ( - gamma * T * frameVelocity.Y );
 
         return new MinkowskiVector(tPrime, xPrime, yPrime);
     }
+
+
 
     /// <summary>
     // Apply inverse Lorentz transform (from moving frame back to global)
@@ -87,8 +97,11 @@ public class MinkowskiVector {
         return new MinkowskiVector(tGlobal, xGlobal, yGlobal);
     }
 
-    public static double Gamma(double vMag) => //this doesnt belong here
-        1.0 / Math.Sqrt(1 - vMag * vMag);
+    public static double Gamma(double vMag)
+    {
+        double beta = vMag / Config.C;
+        return 1.0 / Math.Sqrt(1.0 - beta * beta);
+    }
 
     public static MinkowskiVector operator +(MinkowskiVector a, MinkowskiVector b) =>
         new(a.T + b.T, a.X + b.X, a.Y + b.Y);
@@ -102,6 +115,7 @@ public class MinkowskiVector {
     public override string ToString() => $"(T={T:F3}, X={X:F3}, Y={Y:F3})";
 
     public Vector2 ToVector2() => new Vector2((float)X, (float)Y);
+    public Vector3 ToVector3() => new Vector3((float)T, (float)X, (float)Y);
 }
 
 public class WorldlineEvent //todo: more complex class that updates data only when necessary
@@ -206,13 +220,12 @@ public class FrameOfReference
     public static PathD ApplyLengthContractionInFrame(
         PathD path,
         Vector2 centerV,
-        FrameOfReference observerFrame,
-        Vector2 objectVelocityGlobal
+        Vector2 relativeVelocity
     )
     {
         // Step 1: Transform object's global velocity to observer frame
         //Vector2 relativeVelocity = objectVelocityGlobal - observerFrame.Velocity;
-        Vector2 relativeVelocity = observerFrame.LorentzTransformVelocity(objectVelocityGlobal);
+        
 
         float speedSq = relativeVelocity.LengthSquared();
         float c = (float)Config.C;

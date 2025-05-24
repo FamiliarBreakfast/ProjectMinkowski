@@ -28,7 +28,8 @@ public static class InputSystem {
                     if (state.IsKeyDown(Keys.Q)) rotate -= 1;
                     if (state.IsKeyDown(Keys.Space))
                     {
-                        new Bullet(player.Ship.Origin.Clone(), player.Ship);
+                       var bullet = new Bullet(player.Ship.Origin.Clone(), player.Ship);
+                       new BulletTracer(player, player.Ship.Origin.ToVector2(), bullet.Line.Phi);
                     }
                     break;
                 case 1:
@@ -40,7 +41,8 @@ public static class InputSystem {
                     if (state.IsKeyDown(Keys.OemCloseBrackets)) rotate -= 1;
                     if (state.IsKeyDown(Keys.RightShift))
                     {
-                        new Bullet(player.Ship.Origin.Clone(), player.Ship);
+                        var bullet = new Bullet(player.Ship.Origin.Clone(), player.Ship);
+                        new BulletTracer(player, player.Ship.Origin.ToVector2(), bullet.Line.Phi);
                     }
                     break;
                 case 2:

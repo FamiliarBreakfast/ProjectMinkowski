@@ -26,11 +26,36 @@ public abstract class WorldlineEntity : RenderableEntity
     public WorldlineEntity() {
         Instances.Add(this);
     }
+    
+    public void Remove()
+    {
+        RenderableEntity.Instances.Remove(this);
+        Instances.Remove(this);
+    }
 
     public Worldline Worldline;
     public MinkowskiVector Origin; //origin is current position, worldline tracks previous positions
     public PathD Polygon;
     public int Radius = 20;
+}
+
+public abstract class TracerEntity : RenderableEntity
+{
+    public static readonly List<TracerEntity> Instances = new();
+    public static void ClearAll() => Instances.Clear();
+
+    public TracerEntity()
+    {
+        Instances.Add(this);
+    }
+
+    public void Remove()
+    {
+        RenderableEntity.Instances.Remove(this);
+        Instances.Remove(this);
+    }
+
+    public Line Line;
 }
 
 public abstract class WorldconeEntity : RenderableEntity

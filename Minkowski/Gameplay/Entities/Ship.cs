@@ -17,6 +17,8 @@ public class Ship : WorldlineEntity
     public float StrafePower = 3f;
     public float RotationSpeed = 2f;
     
+    public Player Owner;
+    
     public Color Color;
     public FrameOfReference Frame;
 
@@ -25,6 +27,7 @@ public class Ship : WorldlineEntity
         Worldline = new Worldline();
         Frame = new FrameOfReference(absolutePosition, Velocity);
         player.Ship = this;
+        Owner = player;
         
         Color = PlayerColorGenerator.GetColorFromID(player.Id);
 
@@ -78,6 +81,7 @@ public class Ship : WorldlineEntity
         WorldlineEvent? evt = Worldline.GetVisibleEvent(player.Ship.Origin);
         if (evt != null)
         {
+            Vector2 relativeVelocity = player.Ship.Frame.LorentzTransformVelocity(evt.Velocity);
             var vertices =
                 Transformations.ToVertexArray(
                     Transformations.Translate(
@@ -85,7 +89,7 @@ public class Ship : WorldlineEntity
                             Transformations.Translate(
                                 Transformations.Rotate(Polygon, evt.Rotation),
                                 evt.Origin.X, evt.Origin.Y),
-                            new Vector2((float)evt.Origin.X, (float)evt.Origin.Y), player.Ship.Frame, evt.Velocity),
+                            new Vector2((float)evt.Origin.X, (float)evt.Origin.Y), relativeVelocity),
                         -player.Ship.Origin.X, -player.Ship.Origin.Y),
                     Color);
             
