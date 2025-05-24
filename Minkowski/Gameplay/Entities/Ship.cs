@@ -1,4 +1,5 @@
 using Clipper2Lib;
+using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ProjectMinkowski.Relativity;
@@ -8,6 +9,10 @@ namespace ProjectMinkowski.Entities;
 
 public class Ship : WorldlineEntity
 {
+    public List<VertexPositionColor[]> Shapes = new();
+    
+    public int Id;
+    
     public float Rotation; //todo: cleanup variables
     public Vector2 Velocity;
 
@@ -17,19 +22,15 @@ public class Ship : WorldlineEntity
     public float StrafePower = 3f;
     public float RotationSpeed = 2f;
     
-    public Player Owner;
-    
     public Color Color;
     public FrameOfReference Frame;
 
-    public Ship(MinkowskiVector absolutePosition, Player player) {
+    public Ship(MinkowskiVector absolutePosition, int id) {
         Origin = absolutePosition;
         Worldline = new Worldline();
         Frame = new FrameOfReference(absolutePosition, Velocity);
-        player.Ship = this;
-        Owner = player;
-        
-        Color = PlayerColorGenerator.GetColorFromID(player.Id);
+        Id = id;
+        Color = PlayerColorGenerator.GetColorFromID(Id);
 
         Polygon = new PathD
         {
@@ -37,6 +38,19 @@ public class Ship : WorldlineEntity
             new PointD(-6.66,10),
             new PointD(-6.66,-10)
         };
+    }
+    
+    public void DrawHud(SpriteBatch batch)
+    {
+        var speed = Velocity.Length();
+        var fraction = speed / Config.C;
+
+        string text = $"Speed: {fraction:0.00}c";
+
+        var position = new Vector2(100, 10); // top-left of player's viewport
+        var font = GameResources.DefaultFont;
+
+        batch.DrawString(font, text, position, Color.White);
     }
 
     public void ApplyMovement(float dt, float forwardInput, float strafeInput, float rotateInput) {
@@ -65,6 +79,7 @@ public class Ship : WorldlineEntity
         
         Frame.Lightcone.Apex.X = Origin.X;
         Frame.Lightcone.Apex.Y = Origin.Y;
+        Frame.Lightcone.Apex.T += deltaTime; //ensure we proceed forward through time. generally considered a good thing
         Frame.Velocity = Velocity;
         
         Worldline.AddEvent(new WorldlineEvent(
@@ -75,13 +90,13 @@ public class Ship : WorldlineEntity
         //Console.WriteLine($"[Ship {GetHashCode()}] added event: Vel = {Velocity.Length():0.000} | T = {AbsolutePosition.T:0.000}");
     }
 
-    public override void Draw(SpriteBatch spriteBatch, Player player) { }
-    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player, Rectangle viewport)
+    public override void Draw(SpriteBatch spriteBatch, Ship ship) { }
+    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship)
     {
-        WorldlineEvent? evt = Worldline.GetVisibleEvent(player.Ship.Origin);
+        WorldlineEvent? evt = Worldline.GetVisibleEvent(ship.Origin);
         if (evt != null)
         {
-            Vector2 relativeVelocity = player.Ship.Frame.LorentzTransformVelocity(evt.Velocity);
+            Vector2 relativeVelocity = ship.Frame.LorentzTransformVelocity(evt.Velocity);
             var vertices =
                 Transformations.ToVertexArray(
                     Transformations.Translate(
@@ -90,10 +105,10 @@ public class Ship : WorldlineEntity
                                 Transformations.Rotate(Polygon, evt.Rotation),
                                 evt.Origin.X, evt.Origin.Y),
                             new Vector2((float)evt.Origin.X, (float)evt.Origin.Y), relativeVelocity),
-                        -player.Ship.Origin.X, -player.Ship.Origin.Y),
+                        -ship.Origin.X, -ship.Origin.Y),
                     Color);
             
-            player.Shapes.Add(vertices);
+            ship.Shapes.Add(vertices);
         }
     }
 }

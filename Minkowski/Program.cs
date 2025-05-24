@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using FontStashSharp;
+using ProjectMinkowski.Entities;
 using ProjectMinkowski.Gameplay;
 using ProjectMinkowski.Multiplayer.Local;
 using ProjectMinkowski.Rendering;
@@ -72,16 +73,19 @@ public class ProjectMinowskiGame : Game
             World = Matrix.Identity
         };
 
-        WorldconeAnalyticalIntersectionTests.RunAll();
+        //WorldconeAnalyticalIntersectionTests.RunAll();
         
-        LocalMultiplayerManager.InitializeLocalPlayers(2); // or 4
+        CollisionManager.Register<Ship, Ship>((a, b) => CollisionManager.Collide((Ship)a, (Ship)b));
+        CollisionManager.Register<Ship, Bullet>((a, b) => CollisionManager.Collide((Ship)a, (Bullet)b));
+        
+        PlayerManager.InitializeLocalPlayers(2); // or 4
     }
 
     protected override void Update(GameTime gameTime)
     {
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
         InputSystem.Update(gameTime);
-        foreach (var player in PlayerManager.Players) {
+        foreach (var player in PlayerManager.Ships) {
             player.Update(dt);
         }
 
@@ -89,8 +93,21 @@ public class ProjectMinowskiGame : Game
         {
             entity.Update(dt);
         }
+
+        foreach (var entity in RenderableEntity.Purge)
+        {
+            RenderableEntity.Instances.Remove(entity);
+        }
+        foreach (var entity in WorldlineEntity.Purge)
+        {
+            WorldlineEntity.Instances.Remove(entity);
+        }
+        RenderableEntity.Purge.Clear();
+        WorldlineEntity.Purge.Clear();
         
         CollisionManager.Update(dt);
+        
+        //Console.WriteLine("0");
         
     }
 

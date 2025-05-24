@@ -7,7 +7,7 @@ namespace ProjectMinkowski.Entities;
 
 public class Bullet : TracerEntity
 {
-    public List<BulletTracer> Tracers = new();
+    public Dictionary<Ship, BulletTracer> Tracers = new();
     public Ship Ship;
     
     public Bullet(MinkowskiVector origin, Ship ship)
@@ -19,39 +19,43 @@ public class Bullet : TracerEntity
     public override void Update(float deltaTime)
     { }
 
-    public override void Draw(SpriteBatch spriteBatch, Player player)
+    public override void Draw(SpriteBatch spriteBatch, Ship ship)
     { }
 
-    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player, Rectangle viewport)
+    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship)
     { }
 }
 
 public class BulletTracer : WorldlineEntity
 {
-    public Player Player;
+    public Ship Ship;
     public Vector2 Origin;
     public float Rotation;
     public Color Color;
 
-    private int _fadeTimer;
-    public BulletTracer(Player player, Vector2 origin, float rotation)
+    private int _fadeTimer = 100;
+    public BulletTracer(Ship ship, Vector2 origin, float rotation)
     {
-        Player = player;
+        Ship = ship;
         Origin = origin;
         Rotation = rotation;
-        Color = player.Ship.Color;
-        _fadeTimer = 100;
+        Color = Ship.Color;
     }
     
     public override void Update(float deltaTime)
     {
+        if (_fadeTimer == 0)
+        {
+            RenderableEntity.Purge.Add(this);
+            WorldlineEntity.Purge.Add(this);
+        }
         _fadeTimer--;
     }
 
-    public override void Draw(SpriteBatch spriteBatch, Player player)
+    public override void Draw(SpriteBatch spriteBatch, Ship ship)
     { }
 
-    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player, Rectangle viewport)
+    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship)
     {
             //compute endpoint
             //center in viewport????
@@ -67,8 +71,8 @@ public class BulletTracer : WorldlineEntity
             Vector2 worldEnd = Origin + direction * tracerLength;
 
             // Convert to screen coordinates (player centered)
-            Vector2 screenStart = worldStart - new Vector2((float)player.Ship.Origin.X, (float)player.Ship.Origin.Y);
-            Vector2 screenEnd   = worldEnd   - new Vector2((float)player.Ship.Origin.X, (float)player.Ship.Origin.Y);
+            Vector2 screenStart = worldStart - new Vector2((float)ship.Origin.X, (float)ship.Origin.Y);
+            Vector2 screenEnd   = worldEnd   - new Vector2((float)ship.Origin.X, (float)ship.Origin.Y);
 
             // Optionally, add offset to place the player in the screen center
             // var viewportCenter = new Vector2(viewport.Width / 2, viewport.Height / 2);
@@ -80,7 +84,7 @@ public class BulletTracer : WorldlineEntity
             vertices[0] = new VertexPositionColor(new Vector3(screenStart, 0), Color);
             vertices[1] = new VertexPositionColor(new Vector3(screenEnd, 0), Color);
             
-            player.Shapes.Add(vertices);
+            ship.Shapes.Add(vertices);
         
     }
 }

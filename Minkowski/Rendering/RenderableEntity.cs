@@ -9,19 +9,21 @@ using Microsoft.Xna.Framework.Graphics;
 
 public abstract class RenderableEntity { //todo: refactor to worldline entity? interface??
     public static readonly List<RenderableEntity> Instances = new();
+    public static readonly List<RenderableEntity> Purge = new();
     public static void ClearAll() => Instances.Clear();
     public RenderableEntity() {
         Instances.Add(this);
     }
 
     public abstract void Update(float deltaTime);
-    public abstract void Draw(SpriteBatch spriteBatch, Player player);
-    public abstract void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player, Rectangle viewport);
+    public abstract void Draw(SpriteBatch spriteBatch, Ship ship);
+    public abstract void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship);
 }
 
 public abstract class WorldlineEntity : RenderableEntity
 {
     public static readonly List<WorldlineEntity> Instances = new();
+    public static readonly List<WorldlineEntity> Purge = new();
     public static void ClearAll() => Instances.Clear();
     public WorldlineEntity() {
         Instances.Add(this);
@@ -42,6 +44,7 @@ public abstract class WorldlineEntity : RenderableEntity
 public abstract class TracerEntity : RenderableEntity
 {
     public static readonly List<TracerEntity> Instances = new();
+    public static readonly List<TracerEntity> Purge = new();
     public static void ClearAll() => Instances.Clear();
 
     public TracerEntity()

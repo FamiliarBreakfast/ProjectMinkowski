@@ -1,61 +1,80 @@
-using Clipper2Lib;
+using System.Reflection;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using ProjectMinkowski.Entities;
-using ProjectMinkowski.Relativity;
 using ProjectMinkowski.Rendering;
 
 namespace ProjectMinkowski.Gameplay;
 
+public delegate void CollisionHandler(RenderableEntity a, RenderableEntity b);
 public static class CollisionManager
 {
+    private static Dictionary<(Type, Type), CollisionHandler> handlers = new();
+    public static void Register<TA, TB>(CollisionHandler handler)
+        where TA : RenderableEntity
+        where TB : RenderableEntity
+    {
+        handlers[(typeof(TA), typeof(TB))] = handler;
+    }
+    public static bool TryGetHandler(Type a, Type b, out CollisionHandler handler)
+    {
+        return handlers.TryGetValue((a, b), out handler);
+    }
+    
     public static void Update(float dt)
     {
-        foreach (WorldlineEntity entity in WorldlineEntity.Instances) 
-        {
-            foreach (TracerEntity tracer in TracerEntity.Instances)
-            {
-                // if (Collide(entity, tracer))
-                // {
-                //     //entity.Collide(tracer);
-                //     Console.WriteLine("Shot!");
-                //     Ship? ship = (Ship)entity;
-                //     if (entity != null)
-                //     {
-                //         new BulletTracer(ship.Owner, entity.Origin.ToVector2(), tracer.Line.Phi);
-                //     }
-                //     Console.WriteLine("Shot!");
-                //     //tracer.Line.SetEndTime((float)entity.Origin.T);
-                // }
-            }
-        }
-    }
+        var entities = RenderableEntity.Instances;
+        int count = entities.Count;
 
-    public static bool Collide(WorldlineEntity a, WorldlineEntity b)
-    {
-        if (Vector2.DistanceSquared(a.Origin.ToVector2(), b.Origin.ToVector2()) < Math.Pow(a.Radius + b.Radius, 2))
+        for (int i = 0; i < count; i++)
         {
-            PathsD solution = Clipper.Intersect(new PathsD() {Transformations.Translate(a.Polygon, a.Origin.X, a.Origin.Y)}, new PathsD() {Transformations.Translate(b.Polygon, b.Origin.X, b.Origin.Y)}, FillRule.NonZero);
-            return solution.Count > 0;
-        }
-        return false;
-    }
-    public static bool Collide(WorldlineEntity a, TracerEntity b)
-    {
-        if (b is Bullet bullet)
-        {
-            if (a is Ship ship)
+            var a = entities[i];
+            for (int j = i + 1; j < count; j++)
             {
-                if (bullet.Ship == ship)
-                {
-                    return false;
-                }
+                var b = entities[j];
+                // Try both (A,B) and (B,A) handler orderings for symmetry
+                if (CollisionManager.TryGetHandler(a.GetType(), b.GetType(), out var handler))
+                    handler(a, b);
+                else if (CollisionManager.TryGetHandler(b.GetType(), a.GetType(), out handler))
+                    handler(b, a);
             }
         }
-        if (b.Line.Intersects(a.Origin))
+    }
+    
+    static bool InvokeCollisionHandler(RenderableEntity a, RenderableEntity b)
+    {
+        var method = typeof(CollisionManager).GetMethod(
+            "Collide",
+            BindingFlags.Public | BindingFlags.Static,
+            null,
+            new Type[] { a.GetType(), b.GetType() },
+            null);
+
+        if (method != null)
         {
+            method.Invoke(null, new object[] { a, b });
             return true;
         }
         return false;
+    }
+
+    public static void Collide(Ship ship, Bullet bullet)
+    {
+        if (bullet.Ship != ship)
+        {
+            // if (bullet.Line.Intersects(ship.Origin))
+            // {
+            Vector2? point = bullet.Line.PositionAtZ((float)ship.Origin.T);
+            if (point != null) {
+                Vector2 p = (Vector2)point;
+                if (Vector2.DistanceSquared(p, ship.Origin.ToVector2()) < 600)
+                {
+                    bullet.Line.SetEndTime((float)ship.Origin.T);
+                    bullet.Tracers[ship] = new BulletTracer(bullet.Ship, ship.Origin.ToVector2(), -ship.Rotation);
+                }
+            }
+        }
+    }
+    public static void Collide(Ship a, Ship b)
+    {
     }
 }

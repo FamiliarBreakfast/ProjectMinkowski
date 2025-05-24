@@ -17,20 +17,20 @@ public class SplitScreenRenderer {
 
     public void RenderAllPlayers(SpriteBatch batch) {
         var originalViewport = _graphics.Viewport;
-        var players = PlayerManager.Players;
+        var players = PlayerManager.Ships;
 
         for (int i = 0; i < players.Count; i++) {
             var viewport = GetHardcodedViewport(i, players.Count, _graphics);
             _graphics.Viewport = new Viewport(viewport);
 
             //CenterTransformedPositions(players[i], viewport);
-            RenderPlayerView(players[i], batch, viewport);
+            RenderPlayerView(players[i], batch);
         }
 
         _graphics.Viewport = originalViewport;
     }
 
-    private void RenderPlayerView(Player player, SpriteBatch batch, Rectangle viewport) {
+    private void RenderPlayerView(Ship ship, SpriteBatch batch) {
         var effect = GameResources.BasicEffect!;
         var graphics = _graphics;
 
@@ -50,12 +50,12 @@ public class SplitScreenRenderer {
         batch.End();
         
         foreach (var entity in RenderableEntity.Instances) {
-            entity.VertexDraw(graphics, effect, player, viewport);
+            entity.VertexDraw(graphics, effect, ship);
         }
         
         foreach (EffectPass pass in effect.CurrentTechnique.Passes)
         {
-            foreach (VertexPositionColor[] shape in player.Shapes)
+            foreach (VertexPositionColor[] shape in ship.Shapes)
             {
                 pass.Apply();
                 graphics.DrawUserPrimitives(
@@ -65,14 +65,14 @@ public class SplitScreenRenderer {
                     shape.Length - 1 // LineStrip: count is N-1 segments
                 );
             }
-            player.Shapes.Clear();
+            ship.Shapes.Clear();
         }
         
         batch.Begin(samplerState: SamplerState.PointClamp);
-        batch.DrawString(GameResources.DefaultFont, "Player " + player.Id, new Vector2(10, 10), Color.White);
-        Player.DrawHud(batch, player);
+        batch.DrawString(GameResources.DefaultFont, "Player " + ship.Id, new Vector2(10, 10), Color.White);
+        ship.DrawHud(batch);
         foreach (var entity in RenderableEntity.Instances) {
-            entity.Draw(batch, player);
+            entity.Draw(batch, ship);
         }
         batch.End();
         batch.Begin();

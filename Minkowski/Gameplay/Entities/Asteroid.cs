@@ -32,15 +32,15 @@ public class Asteroid : WorldlineEntity
         ));
     }
 
-    public override void Draw(SpriteBatch spriteBatch, Player player)
+    public override void Draw(SpriteBatch spriteBatch, Ship ship)
     { }
 
-    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Player player, Rectangle viewport)
+    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship)
     {
-        WorldlineEvent? evt = Worldline.GetVisibleEvent(player.Ship.Origin);
+        WorldlineEvent? evt = Worldline.GetVisibleEvent(ship.Origin);
         if (evt != null)
         {
-            Vector2 relativeVelocity = player.Ship.Frame.LorentzTransformVelocity(evt.Velocity);
+            Vector2 relativeVelocity = ship.Frame.LorentzTransformVelocity(evt.Velocity);
             var vertices =
                 Transformations.ToVertexArray(
                     Transformations.Translate(
@@ -49,10 +49,10 @@ public class Asteroid : WorldlineEntity
                                 Transformations.Rotate(Polygon, evt.Rotation),
                                 evt.Origin.X, evt.Origin.Y),
                             new Vector2((float)evt.Origin.X, (float)evt.Origin.Y), relativeVelocity),
-                        -player.Ship.Origin.X, -player.Ship.Origin.Y),
+                        -ship.Origin.X, -ship.Origin.Y),
                     Color.Lime);
             
-            player.Shapes.Add(vertices);
+            ship.Shapes.Add(vertices);
         }
     }
 }

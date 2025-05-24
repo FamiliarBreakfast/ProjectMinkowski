@@ -16,9 +16,14 @@ namespace ProjectMinkowski.Relativity {
         public Line(MinkowskiVector origin, float theta, float phi, float length = 10000)
         {
             Origin = origin;
-            Theta = theta;
+            Theta = (float)Math.Atan(theta);
             Phi = phi;
             Length = length;
+            Direction = new Vector3(
+                (float)Math.Cos(Theta),
+                (float)(Math.Sin(Theta) * Math.Cos(Phi)),
+                (float)(Math.Sin(Theta) * Math.Sin(Phi))
+            );
         }
 
         public void SetEndTime(float time)
@@ -28,11 +33,7 @@ namespace ProjectMinkowski.Relativity {
 
         public bool Intersects(MinkowskiVector point, int radius = 20)
         {
-            Direction = new Vector3(
-                (float)Math.Cos(Theta),
-                (float)(Math.Sin(Theta) * Math.Cos(Phi)),
-                (float)(Math.Sin(Theta) * Math.Sin(Phi))
-            );
+            
             Vector3 v = (point - Origin).ToVector3();
             float dot = Vector3.Dot(v, Direction);
             float s = Math.Max(0, Math.Min(Length, dot));
@@ -43,6 +44,24 @@ namespace ProjectMinkowski.Relativity {
                 return true;
             }
             return false;
+        }
+        
+        public Vector2? PositionAtZ(float z)
+        {
+            if (Math.Abs(Math.Cos(Theta)) < 1e-6)
+            {
+                return null;
+            }
+            
+            float t = (float)((z - Origin.T) / Math.Cos(Theta));
+            if (t < 0 || t > Length)
+            {
+                return null;
+            }
+            
+            float x = (float)(Origin.X + (z - Origin.T) * Math.Tan(Theta) * Math.Cos(Phi));
+            float y = (float)(Origin.Y + (z - Origin.T) * Math.Tan(Theta) * Math.Sin(Phi));
+            return new Vector2(x, y);
         }
         
         public float? RotationAtZ(double time)

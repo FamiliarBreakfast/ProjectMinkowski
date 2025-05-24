@@ -9,15 +9,14 @@ public static class InputSystem {
         var dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
         var state = Keyboard.GetState();
 
-        foreach (var player in PlayerManager.Players)
+        foreach (var ship in PlayerManager.Ships)
         {
-            var ship = player.Ship;
             
             float moveForward = 0;
             float moveStrafe = 0;
             float rotate = 0;
             
-            switch (player.Id)
+            switch (ship.Id)
             {
                 case 0:
                     if (state.IsKeyDown(Keys.W)) moveForward += 1;
@@ -28,8 +27,8 @@ public static class InputSystem {
                     if (state.IsKeyDown(Keys.Q)) rotate -= 1;
                     if (state.IsKeyDown(Keys.Space))
                     {
-                       var bullet = new Bullet(player.Ship.Origin.Clone(), player.Ship);
-                       new BulletTracer(player, player.Ship.Origin.ToVector2(), bullet.Line.Phi);
+                       var bullet = new Bullet(ship.Origin.Clone(), ship);
+                       bullet.Tracers[ship] = new BulletTracer(ship, ship.Origin.ToVector2(), bullet.Line.Phi);
                     }
                     break;
                 case 1:
@@ -41,8 +40,8 @@ public static class InputSystem {
                     if (state.IsKeyDown(Keys.OemCloseBrackets)) rotate -= 1;
                     if (state.IsKeyDown(Keys.RightShift))
                     {
-                        var bullet = new Bullet(player.Ship.Origin.Clone(), player.Ship);
-                        new BulletTracer(player, player.Ship.Origin.ToVector2(), bullet.Line.Phi);
+                        var bullet = new Bullet(ship.Origin.Clone(), ship);
+                        bullet.Tracers[ship] = new BulletTracer(ship, ship.Origin.ToVector2(), bullet.Line.Phi);
                     }
                     break;
                 case 2:
