@@ -47,7 +47,7 @@ public class Ship : WorldlineEntity
         var speed = Velocity.Length();
         var fraction = speed / Config.C;
 
-        string text = $"Player {Id}    Speed: {fraction:0.00}c";
+        string text = $"Player {Id}    Speed: {fraction:0.00}c    Health: {Health}";
 
         var position = new Vector2(10, 10); // top-left of player's viewport
         var font = GameResources.DefaultFont;

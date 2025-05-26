@@ -70,6 +70,7 @@ public static class CollisionManager
                 {
                     bullet.Line.SetEndTime((float)ship.Origin.T);
                     bullet.Tracers[ship] = new BulletTracer(ship, bullet.Ship.Color, p, bullet.Line.Phi + MathF.PI);
+                    ship.Health -= 10;
                 }
             }
         }
