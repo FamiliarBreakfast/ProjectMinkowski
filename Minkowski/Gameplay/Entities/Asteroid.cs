@@ -43,13 +43,11 @@ public class Asteroid : WorldlineEntity
             Vector2 relativeVelocity = ship.Frame.LorentzTransformVelocity(evt.Velocity);
             var vertices =
                 Transformations.ToVertexArray(
-                    Transformations.Translate(
                         FrameOfReference.ApplyLengthContractionInFrame(
                             Transformations.Translate(
                                 Transformations.Rotate(Polygon, evt.Rotation),
                                 evt.Origin.X, evt.Origin.Y),
                             new Vector2((float)evt.Origin.X, (float)evt.Origin.Y), relativeVelocity),
-                        -ship.Origin.X, -ship.Origin.Y),
                     Color.Lime);
             
             ship.Shapes.Add(vertices);

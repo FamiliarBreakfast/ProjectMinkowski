@@ -70,17 +70,17 @@ public class BulletTracer : WorldlineEntity
                 Vector2 worldStart = Origin;
                 Vector2 worldEnd = Origin + direction * _tracerLength;
 
-                // Convert to screen coordinates (player centered)
-                Vector2 screenStart = worldStart - new Vector2((float)ship.Origin.X, (float)ship.Origin.Y);
-                Vector2 screenEnd = worldEnd - new Vector2((float)ship.Origin.X, (float)ship.Origin.Y);
+                // // Convert to screen coordinates (player centered)
+                // Vector2 screenStart = worldStart - new Vector2((float)ship.Origin.X, (float)ship.Origin.Y);
+                // Vector2 screenEnd = worldEnd - new Vector2((float)ship.Origin.X, (float)ship.Origin.Y);
 
                 float t = (float)_fadeTimer / _fadeTimerMax;
                 Color fade = new Color(Color.R / 255f * t, Color.G / 255f * t, Color.B / 255f * t, t);
                 Console.WriteLine(fade);
                 // Build vertex array for the line
                 VertexPositionColor[] vertices = new VertexPositionColor[2];
-                vertices[0] = new VertexPositionColor(new Vector3(screenStart, 0), fade);
-                vertices[1] = new VertexPositionColor(new Vector3(screenEnd, 0), fade);
+                vertices[0] = new VertexPositionColor(new Vector3(worldStart, 0), fade);
+                vertices[1] = new VertexPositionColor(new Vector3(worldEnd, 0), fade);
 
                 ship.Shapes.Add(vertices);
             }

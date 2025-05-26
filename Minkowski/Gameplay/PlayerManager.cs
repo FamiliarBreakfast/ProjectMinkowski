@@ -5,7 +5,7 @@ using ProjectMinkowski.Relativity;
 
 public static class PlayerManager {
     public static List<Ship> Ships = new();
-    
+    public static int Count => Ships.Count;
     public static void InitializeLocalPlayers(int count) {
         for (int i = 0; i < count; i++) {
             Ships.Add(new Ship(new MinkowskiVector(0, 25 * i, 0), i));
