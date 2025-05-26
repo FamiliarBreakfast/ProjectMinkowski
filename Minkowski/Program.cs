@@ -2,6 +2,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using FontStashSharp;
+using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended.Input;
 using ProjectMinkowski.Entities;
 using ProjectMinkowski.Gameplay;
 using ProjectMinkowski.Multiplayer.Local;
@@ -89,26 +91,18 @@ public class ProjectMinowskiGame : Game
             player.Update(dt);
         }
 
-        foreach (var entity in RenderableEntity.Instances)
+        // Update all entities
+        foreach (var entity in EntityManager.Entities)
         {
             entity.Update(dt);
         }
 
-        foreach (var entity in RenderableEntity.Purge)
-        {
-            RenderableEntity.Instances.Remove(entity);
-        }
-        foreach (var entity in WorldlineEntity.Purge)
-        {
-            WorldlineEntity.Instances.Remove(entity);
-        }
-        RenderableEntity.Purge.Clear();
-        WorldlineEntity.Purge.Clear();
+        // Process spawn/despawn queues
+        EntityManager.ProcessQueues();
         
         CollisionManager.Update(dt);
         
-        //Console.WriteLine("0");
-        
+        KeyboardExtended.Update();
     }
 
     protected override void Draw(GameTime gameTime)

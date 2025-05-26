@@ -22,7 +22,7 @@ public static class CollisionManager
     
     public static void Update(float dt)
     {
-        var entities = RenderableEntity.Instances;
+        var entities = EntityManager.Entities;
         int count = entities.Count;
 
         for (int i = 0; i < count; i++)
@@ -69,7 +69,7 @@ public static class CollisionManager
                 if (Vector2.DistanceSquared(p, ship.Origin.ToVector2()) < 600)
                 {
                     bullet.Line.SetEndTime((float)ship.Origin.T);
-                    bullet.Tracers[ship] = new BulletTracer(bullet.Ship, ship.Origin.ToVector2(), -ship.Rotation);
+                    bullet.Tracers[ship] = new BulletTracer(ship, bullet.Ship.Color, p, bullet.Line.Phi + MathF.PI);
                 }
             }
         }

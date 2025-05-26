@@ -25,6 +25,8 @@ public class Ship : WorldlineEntity
     public Color Color;
     public FrameOfReference Frame;
 
+    public byte Flags = 0;
+
     public Ship(MinkowskiVector absolutePosition, int id) {
         Origin = absolutePosition;
         Worldline = new Worldline();
@@ -85,8 +87,10 @@ public class Ship : WorldlineEntity
         Worldline.AddEvent(new WorldlineEvent(
             new MinkowskiVector(Origin.T, Origin.X, Origin.Y),
             Rotation,
-            Velocity
+            Velocity,
+            Flags
         ));
+        Flags = 0b0;
         //Console.WriteLine($"[Ship {GetHashCode()}] added event: Vel = {Velocity.Length():0.000} | T = {AbsolutePosition.T:0.000}");
     }
 
@@ -94,6 +98,7 @@ public class Ship : WorldlineEntity
     public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship)
     {
         WorldlineEvent? evt = Worldline.GetVisibleEvent(ship.Origin);
+        //todo bullet radar tracer
         if (evt != null)
         {
             Vector2 relativeVelocity = ship.Frame.LorentzTransformVelocity(evt.Velocity);
@@ -107,7 +112,7 @@ public class Ship : WorldlineEntity
                             new Vector2((float)evt.Origin.X, (float)evt.Origin.Y), relativeVelocity),
                         -ship.Origin.X, -ship.Origin.Y),
                     Color);
-            
+
             ship.Shapes.Add(vertices);
         }
     }

@@ -42,3 +42,4 @@
 /home/anikyte/Documents/Minkowski/Minkowski/bin/Debug/net9.0/Clipper2Lib.dll
 /home/anikyte/Documents/Minkowski/Minkowski/bin/Debug/net9.0/Assets/MotomangucodeLicense.txt
 /home/anikyte/Documents/Minkowski/Minkowski/bin/Debug/net9.0/Assets/SpaceMonoOFL.md
+/home/anikyte/Documents/Minkowski/Minkowski/bin/Debug/net9.0/MonoGame.Extended.dll

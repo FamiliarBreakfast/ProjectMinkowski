@@ -1,11 +1,9 @@
-using ProjectMinkowski.Entities;
-
 namespace ProjectMinkowski.Rendering.SplitScreen;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ProjectMinkowski;
-using ProjectMinkowski.Entities;
+using Entities;
 using FontStashSharp;
 
 public class SplitScreenRenderer {
@@ -46,18 +44,20 @@ public class SplitScreenRenderer {
             0
         );
 
-
         batch.End();
-        
-        foreach (var entity in RenderableEntity.Instances) {
+
+        foreach (var entity in EntityManager.Entities) {
             entity.VertexDraw(graphics, effect, ship);
         }
-        
+        graphics.BlendState = BlendState.AlphaBlend;
         foreach (EffectPass pass in effect.CurrentTechnique.Passes)
         {
             foreach (VertexPositionColor[] shape in ship.Shapes)
             {
                 pass.Apply();
+                graphics.DepthStencilState = DepthStencilState.None;     // turn off depth testing
+                graphics.BlendState       = BlendState.NonPremultiplied;
+                effect.VertexColorEnabled = true;
                 graphics.DrawUserPrimitives(
                     PrimitiveType.LineStrip, // or LineList
                     shape,
@@ -67,31 +67,17 @@ public class SplitScreenRenderer {
             }
             ship.Shapes.Clear();
         }
-        
+
         batch.Begin(samplerState: SamplerState.PointClamp);
         batch.DrawString(GameResources.DefaultFont, "Player " + ship.Id, new Vector2(10, 10), Color.White);
         ship.DrawHud(batch);
-        foreach (var entity in RenderableEntity.Instances) {
+        foreach (var entity in EntityManager.Entities) {
             entity.Draw(batch, ship);
         }
         batch.End();
         batch.Begin();
     }
 
-    // private void CenterTransformedPositions(Player player, Rectangle viewport) {
-    //     float halfWidth = viewport.Width / 2f;
-    //     float halfHeight = viewport.Height / 2f;
-    //
-    //     player.RenderedPositions.Clear();
-    //
-    //     foreach (var (entity, localPos) in player.TransformedPositions)
-    //     {
-    //         var screenX = (float)localPos.X;
-    //         var screenY = (float)localPos.Y;
-    //         player.RenderedPositions[entity] = new Vector2(screenX, screenY);
-    //     }
-    // }
-    
     private static Rectangle GetHardcodedViewport(int index, int count, GraphicsDevice gd) {
         int w = gd.PresentationParameters.BackBufferWidth;
         int h = gd.PresentationParameters.BackBufferHeight;
@@ -104,7 +90,7 @@ public class SplitScreenRenderer {
             4 => index switch {
                 0 => new Rectangle(0, 0, w / 2, h / 2),         // Top-left
                 1 => new Rectangle(w / 2, 0, w / 2, h / 2),      // Top-right
-                2 => new Rectangle(0, h / 2, w / 2, h / 2),      // Bottom-left 
+                2 => new Rectangle(0, h / 2, w / 2, h / 2),      // Bottom-left
                 3 => new Rectangle(w / 2, h / 2, w / 2, h / 2),  // Bottom-right
                 _ => new Rectangle(0, 0, w, h),
             },
@@ -113,3 +99,4 @@ public class SplitScreenRenderer {
         };
     }
 }
+

@@ -32,22 +32,24 @@ public class BulletTracer : WorldlineEntity
     public Vector2 Origin;
     public float Rotation;
     public Color Color;
-
-    private int _fadeTimer = 100;
-    public BulletTracer(Ship ship, Vector2 origin, float rotation)
+    
+    private static int _fadeTimerMax = 100;
+    private int _fadeTimer;
+    private static float _tracerLength = Config.C * _fadeTimerMax * 2; //ensure tracer end is never visible
+    public BulletTracer(Ship ship, Color color, Vector2 origin, float rotation)
     {
         Ship = ship;
         Origin = origin;
         Rotation = rotation;
-        Color = Ship.Color;
+        Color = color;
+        _fadeTimer = _fadeTimerMax;
     }
     
     public override void Update(float deltaTime)
     {
         if (_fadeTimer == 0)
         {
-            RenderableEntity.Purge.Add(this);
-            WorldlineEntity.Purge.Add(this);
+            Despawn();
         }
         _fadeTimer--;
     }
@@ -60,31 +62,27 @@ public class BulletTracer : WorldlineEntity
             //compute endpoint
             //center in viewport????
             //profit?????????????
-            
-            float tracerLength = 150f; // Or whatever length looks good for your game
+            if (ship == Ship)
+            {
+                Vector2 direction = new Vector2(MathF.Cos(Rotation), MathF.Sin(Rotation));
 
-            // Compute the vector for the tracer's direction
-            Vector2 direction = new Vector2(MathF.Cos(Rotation), MathF.Sin(Rotation));
+                // Start and end points in world coordinates
+                Vector2 worldStart = Origin;
+                Vector2 worldEnd = Origin + direction * _tracerLength;
 
-            // Start and end points in world coordinates
-            Vector2 worldStart = Origin;
-            Vector2 worldEnd = Origin + direction * tracerLength;
+                // Convert to screen coordinates (player centered)
+                Vector2 screenStart = worldStart - new Vector2((float)ship.Origin.X, (float)ship.Origin.Y);
+                Vector2 screenEnd = worldEnd - new Vector2((float)ship.Origin.X, (float)ship.Origin.Y);
 
-            // Convert to screen coordinates (player centered)
-            Vector2 screenStart = worldStart - new Vector2((float)ship.Origin.X, (float)ship.Origin.Y);
-            Vector2 screenEnd   = worldEnd   - new Vector2((float)ship.Origin.X, (float)ship.Origin.Y);
+                float t = (float)_fadeTimer / _fadeTimerMax;
+                Color fade = new Color(Color.R / 255f * t, Color.G / 255f * t, Color.B / 255f * t, t);
+                Console.WriteLine(fade);
+                // Build vertex array for the line
+                VertexPositionColor[] vertices = new VertexPositionColor[2];
+                vertices[0] = new VertexPositionColor(new Vector3(screenStart, 0), fade);
+                vertices[1] = new VertexPositionColor(new Vector3(screenEnd, 0), fade);
 
-            // Optionally, add offset to place the player in the screen center
-            // var viewportCenter = new Vector2(viewport.Width / 2, viewport.Height / 2);
-            // screenStart += viewportCenter;
-            // screenEnd   += viewportCenter;
-
-            // Build vertex array for the line
-            VertexPositionColor[] vertices = new VertexPositionColor[2];
-            vertices[0] = new VertexPositionColor(new Vector3(screenStart, 0), Color);
-            vertices[1] = new VertexPositionColor(new Vector3(screenEnd, 0), Color);
-            
-            ship.Shapes.Add(vertices);
-        
+                ship.Shapes.Add(vertices);
+            }
     }
 }

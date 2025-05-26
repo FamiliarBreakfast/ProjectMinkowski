@@ -1,20 +1,21 @@
 using Clipper2Lib;
 using ProjectMinkowski.Entities;
 using ProjectMinkowski.Relativity;
+using System; // for Type
+using ProjectMinkowski.Rendering;
 
 namespace ProjectMinkowski.Rendering; //todo: this should be elsewhere
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-public abstract class RenderableEntity { //todo: refactor to worldline entity? interface??
-    public static readonly List<RenderableEntity> Instances = new();
-    public static readonly List<RenderableEntity> Purge = new();
-    public static void ClearAll() => Instances.Clear();
+public abstract class RenderableEntity {
     public RenderableEntity() {
-        Instances.Add(this);
+        EntityManager.Spawn(this);
     }
-
+    public void Despawn() {
+        EntityManager.Despawn(this);
+    }
     public abstract void Update(float deltaTime);
     public abstract void Draw(SpriteBatch spriteBatch, Ship ship);
     public abstract void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship);
@@ -22,19 +23,6 @@ public abstract class RenderableEntity { //todo: refactor to worldline entity? i
 
 public abstract class WorldlineEntity : RenderableEntity
 {
-    public static readonly List<WorldlineEntity> Instances = new();
-    public static readonly List<WorldlineEntity> Purge = new();
-    public static void ClearAll() => Instances.Clear();
-    public WorldlineEntity() {
-        Instances.Add(this);
-    }
-    
-    public void Remove()
-    {
-        RenderableEntity.Instances.Remove(this);
-        Instances.Remove(this);
-    }
-
     public Worldline Worldline;
     public MinkowskiVector Origin; //origin is current position, worldline tracks previous positions
     public PathD Polygon;
@@ -43,32 +31,11 @@ public abstract class WorldlineEntity : RenderableEntity
 
 public abstract class TracerEntity : RenderableEntity
 {
-    public static readonly List<TracerEntity> Instances = new();
-    public static readonly List<TracerEntity> Purge = new();
-    public static void ClearAll() => Instances.Clear();
-
-    public TracerEntity()
-    {
-        Instances.Add(this);
-    }
-
-    public void Remove()
-    {
-        RenderableEntity.Instances.Remove(this);
-        Instances.Remove(this);
-    }
-
     public Line Line;
 }
 
 public abstract class WorldconeEntity : RenderableEntity
 {
-    public static readonly List<WorldconeEntity> Instances = new();
-    public static void ClearAll() => Instances.Clear();
-    public WorldconeEntity() {
-        Instances.Add(this);
-    }
-
     public Worldcone Worldcone;
-    //public MinkowskiVector GetOrigin();
 }
+

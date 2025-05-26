@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended.Input;
 using ProjectMinkowski.Entities;
 
 namespace ProjectMinkowski.Multiplayer.Local;
@@ -7,7 +8,7 @@ namespace ProjectMinkowski.Multiplayer.Local;
 public static class InputSystem {
     public static void Update(GameTime gameTime) {
         var dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-        var state = Keyboard.GetState();
+        KeyboardStateExtended state = KeyboardExtended.GetState();
 
         foreach (var ship in PlayerManager.Ships)
         {
@@ -25,10 +26,11 @@ public static class InputSystem {
                     if (state.IsKeyDown(Keys.A)) moveStrafe -= 1;
                     if (state.IsKeyDown(Keys.E)) rotate += 1;
                     if (state.IsKeyDown(Keys.Q)) rotate -= 1;
-                    if (state.IsKeyDown(Keys.Space))
+                    if (state.WasKeyPressed(Keys.Space))
                     {
                        var bullet = new Bullet(ship.Origin.Clone(), ship);
-                       bullet.Tracers[ship] = new BulletTracer(ship, ship.Origin.ToVector2(), bullet.Line.Phi);
+                       bullet.Tracers[ship] = new BulletTracer(ship, bullet.Ship.Color, ship.Origin.ToVector2(), bullet.Line.Phi);
+                       ship.Flags = 0b1;
                     }
                     break;
                 case 1:
@@ -38,10 +40,11 @@ public static class InputSystem {
                     if (state.IsKeyDown(Keys.Left)) moveStrafe -= 1;
                     if (state.IsKeyDown(Keys.OemOpenBrackets)) rotate += 1;
                     if (state.IsKeyDown(Keys.OemCloseBrackets)) rotate -= 1;
-                    if (state.IsKeyDown(Keys.RightShift))
+                    if (state.WasKeyPressed(Keys.RightShift))
                     {
                         var bullet = new Bullet(ship.Origin.Clone(), ship);
-                        bullet.Tracers[ship] = new BulletTracer(ship, ship.Origin.ToVector2(), bullet.Line.Phi);
+                        bullet.Tracers[ship] = new BulletTracer(ship, bullet.Ship.Color, ship.Origin.ToVector2(), bullet.Line.Phi);
+                        ship.Flags = 0b1;
                     }
                     break;
                 case 2:
