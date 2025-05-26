@@ -41,15 +41,15 @@ public class Ship : WorldlineEntity
             new PointD(-6.66,-10)
         };
     }
-    
+    //batch.DrawString(GameResources.DefaultFont, "Player " + ship.Id, new Vector2(10, 10), Color.White);
     public void DrawHud(SpriteBatch batch)
     {
         var speed = Velocity.Length();
         var fraction = speed / Config.C;
 
-        string text = $"Speed: {fraction:0.00}c";
+        string text = $"Player {Id}    Speed: {fraction:0.00}c";
 
-        var position = new Vector2(100, 10); // top-left of player's viewport
+        var position = new Vector2(10, 10); // top-left of player's viewport
         var font = GameResources.DefaultFont;
 
         batch.DrawString(font, text, position, Color.White);
@@ -104,13 +104,11 @@ public class Ship : WorldlineEntity
             Vector2 relativeVelocity = ship.Frame.LorentzTransformVelocity(evt.Velocity);
             var vertices =
                 Transformations.ToVertexArray(
-                    Transformations.Translate(
                         FrameOfReference.ApplyLengthContractionInFrame(
                             Transformations.Translate(
                                 Transformations.Rotate(Polygon, evt.Rotation),
                                 evt.Origin.X, evt.Origin.Y),
                             new Vector2((float)evt.Origin.X, (float)evt.Origin.Y), relativeVelocity),
-                        -ship.Origin.X, -ship.Origin.Y),
                     Color);
 
             ship.Shapes.Add(vertices);

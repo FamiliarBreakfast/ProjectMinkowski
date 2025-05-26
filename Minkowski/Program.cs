@@ -53,10 +53,6 @@ public class ProjectMinowskiGame : Game
     
     protected override void LoadContent()
     {
-        spriteBatch = new SpriteBatch(GraphicsDevice);
-        renderer = new SplitScreenRenderer(GraphicsDevice);
-
-        
         var config = new FontSystemSettings
         {
             FontResolutionFactor = 2, // Default is 1; higher means sharper
@@ -81,6 +77,9 @@ public class ProjectMinowskiGame : Game
         CollisionManager.Register<Ship, Bullet>((a, b) => CollisionManager.Collide((Ship)a, (Bullet)b));
         
         PlayerManager.InitializeLocalPlayers(2); // or 4
+        
+        spriteBatch = new SpriteBatch(GraphicsDevice);
+        renderer = new SplitScreenRenderer(GraphicsDevice);
     }
 
     protected override void Update(GameTime gameTime)
