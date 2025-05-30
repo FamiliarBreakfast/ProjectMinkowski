@@ -1,4 +1,5 @@
 using System.Reflection;
+using Clipper2Lib;
 using Microsoft.Xna.Framework;
 using ProjectMinkowski.Entities;
 using ProjectMinkowski.Relativity;
@@ -67,7 +68,7 @@ public static class CollisionManager
             Vector2? point = bullet.Line.PositionAtZ((float)ship.Origin.T);
             if (point != null) {
                 Vector2 p = (Vector2)point;
-                if (Vector2.DistanceSquared(p, ship.Origin.ToVector2()) < 600)
+                if (Vector2.DistanceSquared(p, ship.Origin.ToVector2()) < Math.Pow(ship.Radius, 2))
                 {
                     bullet.Line.SetEndTime((float)ship.Origin.T);
                     bullet.Tracers[ship] = new BulletTracer(ship, bullet.Ship.Color, p, bullet.Line.Phi + MathF.PI);
@@ -108,7 +109,7 @@ public static class CollisionManager
             if (point != null)
             {
                 Vector2 p = (Vector2)point;
-                if (Vector2.DistanceSquared(p, mine.Origin.ToVector2()) < 600)
+                if (Vector2.DistanceSquared(p, mine.Origin.ToVector2()) < Math.Pow(mine.Radius, 2))
                 {
                     mine.Flags = 1; //detonate
                     new Shockwave(mine.Origin.Clone());
@@ -127,5 +128,32 @@ public static class CollisionManager
                 ship.Health -= 50;
             }
         }
+    }
+
+    public static void Collide(Ship ship, Asteroid asteroid)
+    {
+        if (Vector2.DistanceSquared(ship.Origin.ToVector2(), asteroid.Origin.ToVector2()) < Math.Pow(asteroid.Radius + ship.Radius, 2))
+        {
+            PathsD solution = Clipper.Intersect(new PathsD {ship.Polygon}, new PathsD {asteroid.Polygon}, FillRule.NonZero, 0);
+            bool collided = solution.Any(path => Clipper.Area(path) > 0.0001);
+            if (collided)
+            {
+                asteroid.Despawn();
+                ship.Health -= 10;
+            }
+        }
+    }
+
+    public static void Collide(Bullet bullet, Asteroid asteroid) //broken
+    {
+            Vector2? point = bullet.Line.PositionAtZ((float)asteroid.Origin.T);
+            if (point != null) {
+                Vector2 p = (Vector2)point;
+                if (Vector2.DistanceSquared(p, asteroid.Origin.ToVector2()) < Math.Pow(asteroid.Radius, 2))
+                {
+                    bullet.Line.SetEndTime((float)asteroid.Origin.T);
+                    asteroid.Despawn();
+                }
+            }
     }
 }

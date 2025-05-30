@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Minkowski")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a8c889ca22e6fd056a7ecf1c8255fa0bde3749a6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+937a28646a4e9e30c945b9b5c7ed6e69c9ff8046")]
 [assembly: System.Reflection.AssemblyProductAttribute("Minkowski")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Minkowski")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
