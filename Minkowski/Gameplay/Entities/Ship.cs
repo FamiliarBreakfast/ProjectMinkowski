@@ -13,26 +13,28 @@ public class Ship : WorldlineEntity
     
     public int Id;
     
-    public float Rotation; //todo: cleanup variables
-    public Vector2 Velocity;
+    [Worldline] public float Rotation; //todo: cleanup variables
+    [Worldline] public Vector2 Velocity;
 
-    public int Health = 100;
+    [Worldline] public int Health = 100;
     
-    public float ThrustPower = 10f;
-    public float StrafePower = 3f;
-    public float RotationSpeed = 2f;
+    public float ThrustPower = 15f;
+    public float StrafePower = 6f;
+    public float RotationSpeed = 3f;
     
     public Color Color;
     public FrameOfReference Frame;
 
-    public byte Flags = 0;
+    [Worldline] public byte Flags = 0;
+
+    public List<int> AttackHash = new(); //used to track attacks, so we don't double-count them
 
     public Ship(MinkowskiVector absolutePosition, int id) {
         Origin = absolutePosition;
         Worldline = new Worldline();
         Frame = new FrameOfReference(absolutePosition, Velocity);
         Id = id;
-        Color = PlayerColorGenerator.GetColorFromID(Id);
+        Color = ColorHelper.GetColorFromID(Id);
 
         Polygon = new PathD
         {
@@ -40,6 +42,8 @@ public class Ship : WorldlineEntity
             new PointD(-6.66,10),
             new PointD(-6.66,-10)
         };
+        
+        
     }
     //batch.DrawString(GameResources.DefaultFont, "Player " + ship.Id, new Vector2(10, 10), Color.White);
     public void DrawHud(SpriteBatch batch)
@@ -75,41 +79,49 @@ public class Ship : WorldlineEntity
     
     public override void Update(float deltaTime)
     {
-        Origin.X += Velocity.X * deltaTime;
-        Origin.Y += Velocity.Y * deltaTime;
-        Origin.T += deltaTime; 
-        
         Frame.Lightcone.Apex.X = Origin.X;
         Frame.Lightcone.Apex.Y = Origin.Y;
-        Frame.Lightcone.Apex.T += deltaTime; //ensure we proceed forward through time. generally considered a good thing
+        Frame.Lightcone.Apex.T = Origin.T;
         Frame.Velocity = Velocity;
         
-        Worldline.AddEvent(new WorldlineEvent(
-            new MinkowskiVector(Origin.T, Origin.X, Origin.Y),
-            Rotation,
-            Velocity,
-            Flags
-        ));
+        Origin.X += Velocity.X * deltaTime;
+        Origin.Y += Velocity.Y * deltaTime;
+        Origin.T += deltaTime; //ensure we proceed forward through time. generally considered a good thing
+        
+        Worldline.AddEvent(this);
+        
         Flags = 0b0;
         //Console.WriteLine($"[Ship {GetHashCode()}] added event: Vel = {Velocity.Length():0.000} | T = {AbsolutePosition.T:0.000}");
     }
+    
+    public override void RelativityUpdate(float deltaTime, Ship ship)
+    { }
 
     public override void Draw(SpriteBatch spriteBatch, Ship ship) { }
     public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship)
     {
-        WorldlineEvent? evt = Worldline.GetVisibleEvent(ship.Origin);
-        //todo bullet radar tracer
-        if (evt != null)
+        if (Worldline.HasVisibleEvent(ship.Origin))
         {
-            Vector2 relativeVelocity = ship.Frame.LorentzTransformVelocity(evt.Velocity);
+            Vector2 position = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Position", interpolate: true);
+            Vector2 velocity = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Velocity", interpolate: true);
+            float rotation = Worldline.GetVisibleVariable<float>(ship.Origin, "Rotation", interpolate: true);
+
+            Vector2 relativeVelocity = ship.Frame.LorentzTransformVelocity(velocity);
+
+            Color color = Config.DopplerEffect switch
+            {
+                true => ColorHelper.DopplerShift(Color, relativeVelocity),
+                _ => Color
+            };
+
             var vertices =
                 Transformations.ToVertexArray(
-                        FrameOfReference.ApplyLengthContractionInFrame(
-                            Transformations.Translate(
-                                Transformations.Rotate(Polygon, evt.Rotation),
-                                evt.Origin.X, evt.Origin.Y),
-                            new Vector2((float)evt.Origin.X, (float)evt.Origin.Y), relativeVelocity),
-                    Color);
+                    FrameOfReference.ApplyLengthContractionInFrame(
+                        Transformations.Translate(
+                            Transformations.Rotate(Polygon, rotation),
+                            position.X, position.Y),
+                        position, relativeVelocity),
+                    color);
 
             ship.Shapes.Add(vertices);
         }

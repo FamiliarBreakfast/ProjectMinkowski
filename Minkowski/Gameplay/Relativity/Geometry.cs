@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Clipper2Lib;
 using Microsoft.Xna.Framework.Graphics;
+using ProjectMinkowski.Rendering;
 
 namespace ProjectMinkowski.Relativity {
 
@@ -46,6 +47,28 @@ namespace ProjectMinkowski.Relativity {
             return false;
         }
         
+        public MinkowskiVector? IntersectsAt(MinkowskiVector point, int radius = 20)
+        {
+            // Convert segment to 3D vectors: (T, X, Y)
+            Vector3 v = (point - Origin).ToVector3();
+            float dot = Vector3.Dot(v, Direction);
+            float s = Math.Max(0, Math.Min(Length, dot));
+            Vector3 closest = Origin.ToVector3() + s * Direction;
+
+            // Check Euclidean distance in (T, X, Y)
+            double distSquared = Math.Pow(closest.Z - point.T, 2) +
+                                 Math.Pow(closest.X - point.X, 2) +
+                                 Math.Pow(closest.Y - point.Y, 2);
+
+            if (distSquared < Math.Pow(radius, 2))
+            {
+                // Return the closest point as MinkowskiVector (T, X, Y) = (closest.Z, closest.X, closest.Y)
+                return new MinkowskiVector(closest.Z, closest.X, closest.Y);
+            }
+            return null;
+        }
+
+        
         public Vector2? PositionAtZ(float z)
         {
             if (Math.Abs(Math.Cos(Theta)) < 1e-6)
@@ -77,53 +100,115 @@ namespace ProjectMinkowski.Relativity {
     public class Worldline {
         public List<WorldlineEvent> Events { get; } = new();
 
-        public void AddEvent(WorldlineEvent evt) {
-            Events.Add(evt);
+        public void AddEvent(WorldlineEntity entity) {
+            var newData = entity.GetWorldlineData();
+            var lastEvent = Events.Count > 0 ? Events[Events.Count - 1] : null;
+            
+            if (lastEvent == null || !Equals(lastEvent.Data, newData))
+                Events.Add(new WorldlineEvent { Origin = entity.Origin.Clone(), Data = newData });
         }
 
-        public void Prune(float currentTime, float maxAge = 30f) {
-            Events.RemoveAll(e => currentTime - e.Origin.T > maxAge);
-        }
-        
-        public WorldlineEvent? GetVisibleEvent(MinkowskiVector origin)
+        public bool HasVisibleEvent(MinkowskiVector origin)
+            => GetVisibleEventIndex(origin) >= 0;
+
+        public int GetVisibleEventIndex(MinkowskiVector origin)
         {
-            Vector2 observerPos = new Vector2((float)origin.X, (float)origin.Y);
-            float observerTime = (float)origin.T;
             if (Events.Count == 0)
-                return null;
-
-            int low = 0;
-            int high = Events.Count - 1;
-            int resultIndex = -1;
-
+                return -1;
+        
+            Vector2 observerPos = new((float)origin.X, (float)origin.Y);
+            float observerTime = (float)origin.T;
+        
+            int low = 0, high = Events.Count - 1, resultIndex = -1;
+        
             while (low <= high)
             {
                 int mid = (low + high) / 2;
                 var evt = Events[mid];
-                double arrivalTime = evt.Time + Vector2.Distance(observerPos, evt.Position) / Config.C;
-
+                double arrivalTime = evt.Origin.T + Vector2.Distance(observerPos, evt.Origin.ToVector2()) / Config.C - 0.001f;
+        
                 if (arrivalTime <= observerTime)
                 {
                     resultIndex = mid;
-                    low = mid + 1; // Try to find a later visible event
+                    low = mid + 1;
                 }
                 else
                 {
-                    high = mid - 1; // Too early
+                    high = mid - 1;
                 }
             }
+        
+            return resultIndex;
+        }
 
-            return resultIndex >= 0 ? Events[resultIndex] : null;
+        public T? GetVisibleVariable<T>(MinkowskiVector origin, string variable, bool interpolate = false)
+        {
+            int idx = GetVisibleEventIndex(origin);
+            if (idx < 0)
+                return default;
+
+            // If not interpolating or at the end, just return the value
+            if (!interpolate || idx == Events.Count - 1)
+                return Events[idx].Get<T>(variable);
+
+            // Next event, for interpolation
+            var evt0 = Events[idx];
+            var evt1 = Events[idx + 1];
+
+            Vector2 observerPos = new((float)origin.X, (float)origin.Y);
+            float observerTime = (float)origin.T;
+
+            double arrivalTime0 = evt0.Origin.T + Vector2.Distance(observerPos, evt0.Origin.ToVector2()) / Config.C;
+            double arrivalTime1 = evt1.Origin.T + Vector2.Distance(observerPos, evt1.Origin.ToVector2()) / Config.C;
+
+            if (observerTime < arrivalTime1)
+            {
+                // Interpolate if both events have the variable
+                bool has0 = evt0.Data.TryGetValue(variable, out var v0);
+                bool has1 = evt1.Data.TryGetValue(variable, out var v1);
+
+                if (has0 && has1 && v0?.GetType() == v1?.GetType())
+                {
+                    double alpha = (arrivalTime1 == arrivalTime0)
+                        ? 0
+                        : (observerTime - arrivalTime0) / (arrivalTime1 - arrivalTime0);
+
+                    // Basic type interpolation
+                    if (v0 is float f0 && v1 is float f1)
+                        return (T)(object)((float)(f0 + (f1 - f0) * alpha));
+                    if (v0 is int i0 && v1 is int i1)
+                        return (T)(object)((int)Math.Round(i0 + (i1 - i0) * alpha));
+                    if (v0 is Vector2 vec0 && v1 is Vector2 vec1)
+                        return (T)(object)Vector2.Lerp(vec0, vec1, (float)alpha);
+                    // Add more types as needed
+
+                    // Not interpolatable? Just return the earlier
+                    return (T)v0!;
+                }
+                else if (has0)
+                    return (T)v0!;
+                else if (has1)
+                    return (T)v1!;
+                else
+                    return default;
+            }
+            else
+            {
+                // observerTime >= arrivalTime1, so just take evt1
+                return evt1.Get<T>(variable);
+            }
         }
     }
     
     public class Worldcone {
         public readonly MinkowskiVector Apex;         // Apex of the cone in spacetime
         public readonly float Angle;                  // Expansion rate (0 < Angle ≤ 1), as fraction of speed of light
-        public readonly int TemporalDirection;        // +1 (forward), -1 (backward), 0 (undefined)
+        public readonly int TemporalDirection;        // +1 (forward), -1 (backward)
+        public readonly int Height;                   // Height of the cone, -1 for infinite
 
-        public Worldcone(MinkowskiVector apex, float angle, int temporalDirection) {
+        public Worldcone(MinkowskiVector apex, float angle, int temporalDirection, int height = -1) {
             Apex = apex;
+            Height = height;
             Angle = MathHelper.Clamp(angle, 0f, 1f);
             TemporalDirection = Math.Clamp(temporalDirection, -1, 1);
         }
@@ -163,12 +248,22 @@ namespace ProjectMinkowski.Relativity {
         /// Enforces temporal orientation: no visibility "upstream"
         /// </summary>
         private bool IsInTemporalRange(MinkowskiVector point) {
-            return TemporalDirection switch {
-                1 => point.T >= Apex.T,
-                -1 => point.T <= Apex.T,
-                0 => true,
-                _ => false
-            };
+            switch (TemporalDirection) {
+                case 1: // Forward in time
+                    if (Height < 0)
+                        return point.T >= Apex.T;
+                    else
+                        return point.T >= Apex.T && point.T <= Apex.T + Height;
+                case -1: // Backward in time
+                    if (Height < 0)
+                        return point.T <= Apex.T;
+                    else
+                        return point.T <= Apex.T && point.T >= Apex.T - Height;
+                case 0: // No temporal direction; degenerate case
+                    return true;
+                default:
+                    return false;
+            }
         }
     }
     
@@ -285,6 +380,16 @@ namespace ProjectMinkowski.Relativity {
             ));
         }
         
+        public static PathD Scale(PathD path, double scale)
+        {
+            return new PathD(path.Select(p => new PointD(p.x * scale, p.y * scale)));
+        }
+        
+        public static PathD Scale(PathD path, double scaleX, double scaleY)
+        {
+            return new PathD(path.Select(p => new PointD(p.x * scaleX, p.y * scaleY)));
+        }
+        
         public static VertexPositionColor[] ToVertexArray(
             PathD path, Color color, float z = 0f)
         {
@@ -345,15 +450,31 @@ namespace ProjectMinkowski.Relativity {
                 if (!aInside && bInside && ta >= 0 && tb >= 0) {
                     float blend = (expectedRa - ra) / ((expectedRb - rb) - (expectedRa - ra));
 
-                    return new WorldlineEvent(
-                        new MinkowskiVector(
+                    // return new WorldlineEvent(
+                    // new MinkowskiVector(
+                    //     MathHelper.Lerp((float)a.Origin.T, (float)b.Origin.T, blend),
+                    //     MathHelper.Lerp((float)a.Origin.X, (float)b.Origin.X, blend),
+                    //     MathHelper.Lerp((float)a.Origin.Y, (float)b.Origin.Y, blend)
+                    // ),
+                    //     MathHelper.Lerp(a.Rotation, b.Rotation, blend),
+                    //     Vector2.Lerp(a.Velocity, b.Velocity, blend)
+                    // );
+
+                    Dictionary<string, object> newData = new Dictionary<string, object>()
+                    {
+                        { "Rotation", MathHelper.Lerp(a.Get<float>("Rotation"), b.Get<float>("Rotation"), blend) },
+                        { "Velocity", Vector2.Lerp(a.Get<Vector2>("Velocity"), b.Get<Vector2>("Velocity"), blend) }
+                    };
+
+                    return new WorldlineEvent
+                    {
+                        Origin = new MinkowskiVector(
                             MathHelper.Lerp((float)a.Origin.T, (float)b.Origin.T, blend),
                             MathHelper.Lerp((float)a.Origin.X, (float)b.Origin.X, blend),
                             MathHelper.Lerp((float)a.Origin.Y, (float)b.Origin.Y, blend)
                         ),
-                        MathHelper.Lerp(a.Rotation, b.Rotation, blend),
-                        Vector2.Lerp(a.Velocity, b.Velocity, blend)
-                    );
+                        Data = newData
+                    };
                 }
 
                 // Already inside cone in temporal direction

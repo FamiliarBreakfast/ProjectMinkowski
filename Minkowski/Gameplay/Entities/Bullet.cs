@@ -18,6 +18,9 @@ public class Bullet : TracerEntity
     
     public override void Update(float deltaTime)
     { }
+    
+    public override void RelativityUpdate(float deltaTime, Ship ship)
+    { }
 
     public override void Draw(SpriteBatch spriteBatch, Ship ship)
     { }
@@ -26,7 +29,7 @@ public class Bullet : TracerEntity
     { }
 }
 
-public class BulletTracer : WorldlineEntity
+public class BulletTracer : WorldlineEntity //todo: this does not need to be a WorldlineEntity
 {
     public Ship Ship;
     public Vector2 Origin;
@@ -53,36 +56,31 @@ public class BulletTracer : WorldlineEntity
         }
         _fadeTimer--;
     }
+    
+    public override void RelativityUpdate(float deltaTime, Ship ship)
+    { }
 
     public override void Draw(SpriteBatch spriteBatch, Ship ship)
     { }
 
     public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship)
     {
-            //compute endpoint
-            //center in viewport????
-            //profit?????????????
-            if (ship == Ship)
-            {
-                Vector2 direction = new Vector2(MathF.Cos(Rotation), MathF.Sin(Rotation));
+        if (ship == Ship)
+        {
+            Vector2 direction = new Vector2(MathF.Cos(Rotation), MathF.Sin(Rotation));
+            
+            Vector2 worldStart = Origin;
+            Vector2 worldEnd = Origin + direction * _tracerLength;
 
-                // Start and end points in world coordinates
-                Vector2 worldStart = Origin;
-                Vector2 worldEnd = Origin + direction * _tracerLength;
+            float t = (float)_fadeTimer / _fadeTimerMax;
+            
+            Color fade = new Color(Color.R / 255f * t, Color.G / 255f * t, Color.B / 255f * t, t);
 
-                // // Convert to screen coordinates (player centered)
-                // Vector2 screenStart = worldStart - new Vector2((float)ship.Origin.X, (float)ship.Origin.Y);
-                // Vector2 screenEnd = worldEnd - new Vector2((float)ship.Origin.X, (float)ship.Origin.Y);
+            VertexPositionColor[] vertices = new VertexPositionColor[2];
+            vertices[0] = new VertexPositionColor(new Vector3(worldStart, 0), fade);
+            vertices[1] = new VertexPositionColor(new Vector3(worldEnd, 0), fade);
 
-                float t = (float)_fadeTimer / _fadeTimerMax;
-                Color fade = new Color(Color.R / 255f * t, Color.G / 255f * t, Color.B / 255f * t, t);
-                Console.WriteLine(fade);
-                // Build vertex array for the line
-                VertexPositionColor[] vertices = new VertexPositionColor[2];
-                vertices[0] = new VertexPositionColor(new Vector3(worldStart, 0), fade);
-                vertices[1] = new VertexPositionColor(new Vector3(worldEnd, 0), fade);
-
-                ship.Shapes.Add(vertices);
-            }
+            ship.Shapes.Add(vertices);
+        }
     }
 }

@@ -12,7 +12,6 @@ public static class InputSystem {
 
         foreach (var ship in PlayerManager.Ships)
         {
-            
             float moveForward = 0;
             float moveStrafe = 0;
             float rotate = 0;
@@ -26,11 +25,15 @@ public static class InputSystem {
                     if (state.IsKeyDown(Keys.A)) moveStrafe -= 1;
                     if (state.IsKeyDown(Keys.E)) rotate += 1;
                     if (state.IsKeyDown(Keys.Q)) rotate -= 1;
-                    if (state.WasKeyPressed(Keys.Space))
+                    if (state.WasKeyPressed(Keys.Space)) //todo: IMPORTANT: make own input system, monogame extended sucks
                     {
                        var bullet = new Bullet(ship.Origin.Clone(), ship);
                        bullet.Tracers[ship] = new BulletTracer(ship, bullet.Ship.Color, ship.Origin.ToVector2(), bullet.Line.Phi);
                        ship.Flags = 0b1;
+                    }
+                    if (state.WasKeyPressed(Keys.Z)) //todo: IMPORTANT: make own input system, monogame extended sucks
+                    {
+                        var mine = new Mine(ship.Origin.Clone(), ship, ship.Rotation, ship.Velocity);
                     }
                     break;
                 case 1:

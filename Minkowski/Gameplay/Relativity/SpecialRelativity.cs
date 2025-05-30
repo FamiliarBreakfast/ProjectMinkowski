@@ -118,41 +118,53 @@ public class MinkowskiVector {
     public Vector3 ToVector3() => new Vector3((float)T, (float)X, (float)Y);
 }
 
-public class WorldlineEvent //todo: more complex class that updates data only when necessary
+// public class WorldlineEvent //todo: more complex class that updates data only when necessary
+//                             //todo: arbitrary data field
+// {
+//     public double Time;
+//     public Vector2 Position = new Vector2();
+//     public float Rotation;
+//     public Vector2 Velocity = new Vector2();
+//     public byte Flags;
+//
+//     public MinkowskiVector Origin => new(Time, Position.X, Position.Y);
+//
+//     public WorldlineEvent(WorldlineEntity entity, Vector2 velocity, byte flags = 0)
+//     {
+//         Time = entity.Origin.T;
+//         Position.X = (float)entity.Origin.X;
+//         Position.Y = (float)entity.Origin.Y;
+//         Velocity = velocity;
+//         Flags = flags;
+//     }
+//     public WorldlineEvent(MinkowskiVector origin, float rotation, Vector2 velocity, byte flags = 0)
+//     {
+//         Time = origin.T;
+//         Position.X = (float)origin.X;
+//         Position.Y = (float)origin.Y;
+//         Rotation = rotation;
+//         Velocity = velocity;
+//         Flags = flags;
+//     }
+//     public WorldlineEvent(double time, Vector2 position, float rotation, Vector2 velocity, byte flags = 0)
+//     {
+//         Time = time;
+//         Position = position;
+//         Velocity = velocity;
+//         Rotation = rotation;
+//         Flags = flags;
+//     }
+// }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public class WorldlineAttribute : Attribute { }
+
+public class WorldlineEvent
 {
-    public double Time;
-    public Vector2 Position = new Vector2();
-    public float Rotation;
-    public Vector2 Velocity = new Vector2();
-    public byte Flags;
+    public required MinkowskiVector Origin;
+    public Dictionary<string, object> Data = new();
 
-    public MinkowskiVector Origin => new(Time, Position.X, Position.Y);
-
-    public WorldlineEvent(WorldlineEntity entity, Vector2 velocity, byte flags = 0)
-    {
-        Time = entity.Origin.T;
-        Position.X = (float)entity.Origin.X;
-        Position.Y = (float)entity.Origin.Y;
-        Velocity = velocity;
-        Flags = flags;
-    }
-    public WorldlineEvent(MinkowskiVector origin, float rotation, Vector2 velocity, byte flags = 0)
-    {
-        Time = origin.T;
-        Position.X = (float)origin.X;
-        Position.Y = (float)origin.Y;
-        Rotation = rotation;
-        Velocity = velocity;
-        Flags = flags;
-    }
-    public WorldlineEvent(double time, Vector2 position, float rotation, Vector2 velocity, byte flags = 0)
-    {
-        Time = time;
-        Position = position;
-        Velocity = velocity;
-        Rotation = rotation;
-        Flags = flags;
-    }
+    public T Get<T>(string name) => Data.TryGetValue(name, out var val) ? (T)val : default!;
 }
 
 public class FrameOfReference

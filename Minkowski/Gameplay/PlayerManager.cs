@@ -10,6 +10,11 @@ public static class PlayerManager {
         for (int i = 0; i < count; i++) {
             Ships.Add(new Ship(new MinkowskiVector(0, 25 * i, 0), i));
         }
+
+        // for (int i = 0; i < 20; i++)
+        // {
+        //     new Asteroid(new MinkowskiVector(0, 25 * i, 7*i));
+        // }
     }
     
     public static Ship? GetShipById(int id) =>

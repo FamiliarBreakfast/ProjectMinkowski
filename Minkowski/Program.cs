@@ -27,7 +27,8 @@ public static class Config
     /// <summary>
     /// The speed of light, in space units per time unit (e.g. 10 means light moves 10 units/sec).
     /// </summary>
-    public const int C = 25;
+    public const int C = 50;
+    public const bool DopplerEffect = false;
 }
 
 public static class GameResources {
@@ -75,6 +76,9 @@ public class ProjectMinowskiGame : Game
         
         CollisionManager.Register<Ship, Ship>((a, b) => CollisionManager.Collide((Ship)a, (Ship)b));
         CollisionManager.Register<Ship, Bullet>((a, b) => CollisionManager.Collide((Ship)a, (Bullet)b));
+        CollisionManager.Register<Mine, Bullet>((a, b) => CollisionManager.Collide((Mine)a, (Bullet)b));
+        CollisionManager.Register<Ship, Mine>((a, b) => CollisionManager.Collide((Ship)a, (Mine)b));
+        CollisionManager.Register<Ship, Shockwave>((a, b) => CollisionManager.Collide((Ship)a, (Shockwave)b));
         
         PlayerManager.InitializeLocalPlayers(2); // or 4
         
@@ -87,7 +91,10 @@ public class ProjectMinowskiGame : Game
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
         InputSystem.Update(gameTime);
         foreach (var player in PlayerManager.Ships) {
-            player.Update(dt);
+            foreach (var entity in EntityManager.Entities)
+            {
+                entity.RelativityUpdate(dt, player);
+            }
         }
 
         // Update all entities

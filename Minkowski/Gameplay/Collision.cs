@@ -1,6 +1,7 @@
 using System.Reflection;
 using Microsoft.Xna.Framework;
 using ProjectMinkowski.Entities;
+using ProjectMinkowski.Relativity;
 using ProjectMinkowski.Rendering;
 
 namespace ProjectMinkowski.Gameplay;
@@ -77,5 +78,54 @@ public static class CollisionManager
     }
     public static void Collide(Ship a, Ship b)
     {
+    }
+    
+    public static void Collide(Ship ship, Mine mine)
+    {
+        // if (mine.Ship != ship)
+        // {
+        //     Vector2? point = mine.Polygon.Intersects(ship.Origin.ToVector2());
+        //     if (point != null)
+        //     {
+        //         Vector2 p = (Vector2)point;
+        //         if (Vector2.DistanceSquared(p, ship.Origin.ToVector2()) < 600)
+        //         {
+        //             mine.Flags = 1; //detonate
+        //             ship.Health -= 20;
+        //         }
+        //     }
+        // }
+    }
+    
+    public static void Collide(Mine mine, Bullet bullet)
+    {
+        if (mine.Flags == 0)
+        {
+            //find the point of intersection between the bullet line and the mine polygon
+            //create a new worldline event for the at that point and set the mine's flags to detonate
+            //MinkowskiVector? point = bullet.Line.IntersectsAt(mine.Origin);
+            Vector2? point = bullet.Line.PositionAtZ((float)mine.Origin.T);
+            if (point != null)
+            {
+                Vector2 p = (Vector2)point;
+                if (Vector2.DistanceSquared(p, mine.Origin.ToVector2()) < 600)
+                {
+                    mine.Flags = 1; //detonate
+                    new Shockwave(mine.Origin.Clone());
+                }
+            }
+        }
+    }
+
+    public static void Collide(Ship ship, Shockwave shockwave)
+    {
+        if (shockwave.Worldcone.IsOnShell(ship.Origin, 1))
+        {
+            if (!ship.AttackHash.Contains(shockwave.GetHashCode()))
+            {
+                ship.AttackHash.Add(shockwave.GetHashCode()); //add to attacked list to prevent double hurting
+                ship.Health -= 50;
+            }
+        }
     }
 }
