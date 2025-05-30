@@ -77,7 +77,7 @@ public class Ship : WorldlineEntity
         Velocity += coordAccel * dt;
     }
     
-    public override void Update(float deltaTime)
+    public override void Update(float deltaTime) //todo: space friction?
     {
         Frame.Lightcone.Apex.X = Origin.X;
         Frame.Lightcone.Apex.Y = Origin.Y;

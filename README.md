@@ -3,9 +3,7 @@
 ***Project Minkowski*** is in a very early stage, and needs a lot of code cleanup (especially from someone who understands relativity better than me).
 
 ***Project Minkowski*** is licensed under the **AGPL-V3**, except where otherwise noted.
-  
-  
-  
+
 **TODO:**
 - Asteroids or some kind of object fields (in progress)
 - doppler effect (hiatus)
@@ -18,7 +16,7 @@
 - refactor entity/collision system for better performance
 - custom input system (in progress)
 - predictive aim reticle
-- FTL?? There is engine support
+- FTL?? There is engine support (in the sense it doesnt immedietly crash)
 - - could cause paradoxes?
 - - - might not be a problem
 - weird ftl stuff???
@@ -27,6 +25,7 @@
 - - - backwards weapon fire?
 - - - reactive defense?
 - the camera should rotate instead of the ship
+- remove monogame extended
 - (long term) teams and chat (with signal delay)
 - (long term) Online networking
 - (long term) Partial general relativity

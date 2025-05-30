@@ -49,7 +49,7 @@ public class SplitScreenRenderer {
         graphics.RasterizerState = RasterizerState.CullNone;
 
         // Use camera for View & Projection
-        effect.Projection = Matrix.CreateOrthographicOffCenter(
+        effect.Projection = Matrix.CreateOrthographicOffCenter( //todo: replace with own camera matrix that supports rotation
             -_graphics.Viewport.Height / 2f, _graphics.Viewport.Width / 2f,
             _graphics.Viewport.Height / 2f, -_graphics.Viewport.Width / 2f, // note: Y axis may be flipped, adjust if needed
             0, 1
