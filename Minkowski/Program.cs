@@ -97,9 +97,9 @@ public class ProjectMinowskiGame : Game
     protected override void Update(GameTime gameTime)
     {
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-        InputSystem.Update(gameTime);
         foreach (var player in PlayerManager.Ships)
         {
+            InputSystem.Update(dt, player);
             AsteroidManager.UpdatePlayer(player, Config.AsteroidLoadRadius, Config.AsteroidSpacing);
             foreach (var entity in EntityManager.Entities)
             {

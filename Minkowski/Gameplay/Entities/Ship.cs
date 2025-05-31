@@ -2,6 +2,7 @@ using Clipper2Lib;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using ProjectMinkowski.Multiplayer.Local;
 using ProjectMinkowski.Relativity;
 using ProjectMinkowski.Rendering;
 
@@ -9,25 +10,26 @@ namespace ProjectMinkowski.Entities;
 
 public class Ship : WorldlineEntity
 {
-    public List<VertexPositionColor[]> Shapes = new();
-    
     public int Id;
     
-    [Worldline] public float Rotation; //todo: cleanup variables
-    [Worldline] public Vector2 Velocity;
-
-    [Worldline] public int Health = 100;
-    
-    public float ThrustPower = 15f;
-    public float StrafePower = 6f;
-    public float RotationSpeed = 3f;
+    public List<VertexPositionColor[]> Shapes = new();
+    public List<int> AttackHash = new(); //used to track attacks, so we don't double-count them
     
     public Color Color;
     public FrameOfReference Frame;
-
+    
+    [Worldline] public float Rotation; //todo: cleanup variables
+    [Worldline] public Vector2 Velocity;
+    [Worldline] public int Health = 100;
     [Worldline] public byte Flags = 0;
-
-    public List<int> AttackHash = new(); //used to track attacks, so we don't double-count them
+    
+    public const float ThrustPower = 15f;
+    public const float StrafePower = 6f;
+    public const float RotationSpeed = 3f;
+    
+    [Control("Parallel")] public float _parallel; 
+    [Control("Perpendicular")] public float _perpindicular;
+    [Control("Azimuth")] public float _azimuth;
 
     public Ship(MinkowskiVector absolutePosition, int id) {
         Origin = absolutePosition;
@@ -42,10 +44,22 @@ public class Ship : WorldlineEntity
             new PointD(-6.66,10),
             new PointD(-6.66,-10)
         };
-        
-        
     }
-    //batch.DrawString(GameResources.DefaultFont, "Player " + ship.Id, new Vector2(10, 10), Color.White);
+
+    [Control("Beam")]
+    public void FireBeam()
+    {
+        var bullet = new Bullet(Origin.Clone(), this);
+        bullet.Tracers[this] = new BulletTracer(this, bullet.Ship.Color, Origin.ToVector2(), bullet.Line.Phi);
+        Flags = 0b1;
+    }
+
+    [Control("Mine")]
+    public void FireMine()
+    {
+        var mine = new Mine(Origin.Clone(), this, Rotation, Velocity);
+    }
+    
     public void DrawHud(SpriteBatch batch)
     {
         var speed = Velocity.Length();
@@ -79,6 +93,8 @@ public class Ship : WorldlineEntity
     
     public override void Update(float deltaTime) //todo: space friction?
     {
+        ApplyMovement(deltaTime, _parallel, _perpindicular, _azimuth);
+        
         Frame.Lightcone.Apex.X = Origin.X;
         Frame.Lightcone.Apex.Y = Origin.Y;
         Frame.Lightcone.Apex.T = Origin.T;
@@ -94,9 +110,7 @@ public class Ship : WorldlineEntity
         //Console.WriteLine($"[Ship {GetHashCode()}] added event: Vel = {Velocity.Length():0.000} | T = {AbsolutePosition.T:0.000}");
     }
     
-    public override void RelativityUpdate(float deltaTime, Ship ship)
-    { }
-
+    public override void RelativityUpdate(float deltaTime, Ship ship) { }
     public override void Draw(SpriteBatch spriteBatch, Ship ship) { }
     public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship)
     {

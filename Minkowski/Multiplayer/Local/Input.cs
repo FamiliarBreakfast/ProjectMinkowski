@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Input;
@@ -5,57 +6,121 @@ using ProjectMinkowski.Entities;
 
 namespace ProjectMinkowski.Multiplayer.Local;
 
-public static class InputSystem {
-    public static void Update(GameTime gameTime) {
-        var dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-        KeyboardStateExtended state = KeyboardExtended.GetState();
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Method)]
+public class ControlAttribute : Attribute
+{
+    public string ControlName { get; }
 
-        foreach (var ship in PlayerManager.Ships)
+    public ControlAttribute(string controlName)
+    {
+        ControlName = controlName;
+    }
+}
+
+public static class InputSystem
+{
+    private static Dictionary<string, Func<float>> ControllerMap = new()
+    {
+        { "Parallel", () => _currentGamePadState.ThumbSticks.Left.Y },
+        { "Perpendicular", () => _currentGamePadState.Triggers.Left - _currentGamePadState.Triggers.Right },
+        { "Azimuth", () => _currentGamePadState.ThumbSticks.Left.X },
+        { "Beam", () => PadPressed(Buttons.A) },
+        { "Mine", () => PadPressed(Buttons.B) }
+    };
+
+    private static Dictionary<string, Func<float>> KeyboardMap = new()
+    {
+        { "Parallel", () => KeyDown(Keys.W) - KeyDown(Keys.S) },
+        { "Perpendicular", () => KeyDown(Keys.D) - KeyDown(Keys.A) },
+        { "Azimuth", () => KeyDown(Keys.E) - KeyDown(Keys.Q) },
+        { "Beam", () => KeyPressed(Keys.Space) },
+        { "Mine", () => KeyPressed(Keys.Z) }
+    };
+    
+    private static List<(PlayerIndex?, Dictionary<string, Func<float>>)> ControlType = new()
+    {
+        (null, KeyboardMap),
+        (PlayerIndex.One, ControllerMap),
+        (PlayerIndex.Two, ControllerMap),
+        (PlayerIndex.Three, ControllerMap)
+    };
+    
+    private static KeyboardState _previousKeyboardState;
+    private static KeyboardState _currentKeyboardState;
+    private static GamePadState _previousGamePadState;
+    private static GamePadState _currentGamePadState;
+    
+    public static void InjectControls(object target, Dictionary<string, Func<float>> controlMap)
+    {
+        var type = target.GetType();
+
+        // Handle fields
+        foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
         {
-            float moveForward = 0;
-            float moveStrafe = 0;
-            float rotate = 0;
-            
-            switch (ship.Id)
+            var controlAttr = field.GetCustomAttribute<ControlAttribute>();
+            if (controlAttr == null) continue;
+
+            if (controlMap.TryGetValue(controlAttr.ControlName, out var inputFunc))
             {
-                case 0:
-                    if (state.IsKeyDown(Keys.W)) moveForward += 1;
-                    if (state.IsKeyDown(Keys.S)) moveForward -= 1;
-                    if (state.IsKeyDown(Keys.D)) moveStrafe += 1;
-                    if (state.IsKeyDown(Keys.A)) moveStrafe -= 1;
-                    if (state.IsKeyDown(Keys.E)) rotate += 1;
-                    if (state.IsKeyDown(Keys.Q)) rotate -= 1;
-                    if (state.WasKeyPressed(Keys.Space)) //todo: IMPORTANT: make own input system, monogame extended sucks
-                    {
-                       var bullet = new Bullet(ship.Origin.Clone(), ship);
-                       bullet.Tracers[ship] = new BulletTracer(ship, bullet.Ship.Color, ship.Origin.ToVector2(), bullet.Line.Phi);
-                       ship.Flags = 0b1;
-                    }
-                    if (state.WasKeyPressed(Keys.Z)) //todo: IMPORTANT: make own input system, monogame extended sucks
-                    {
-                        var mine = new Mine(ship.Origin.Clone(), ship, ship.Rotation, ship.Velocity);
-                    }
-                    break;
-                case 1:
-                    if (state.IsKeyDown(Keys.Up)) moveForward += 1;
-                    if (state.IsKeyDown(Keys.Down)) moveForward -= 1;
-                    if (state.IsKeyDown(Keys.Right)) moveStrafe += 1;
-                    if (state.IsKeyDown(Keys.Left)) moveStrafe -= 1;
-                    if (state.IsKeyDown(Keys.OemOpenBrackets)) rotate += 1;
-                    if (state.IsKeyDown(Keys.OemCloseBrackets)) rotate -= 1;
-                    if (state.WasKeyPressed(Keys.RightShift))
-                    {
-                        var bullet = new Bullet(ship.Origin.Clone(), ship);
-                        bullet.Tracers[ship] = new BulletTracer(ship, bullet.Ship.Color, ship.Origin.ToVector2(), bullet.Line.Phi);
-                        ship.Flags = 0b1;
-                    }
-                    break;
-                case 2:
-                    break;
-                case 3:
-                    break;
+                float value = inputFunc.Invoke();
+                if (field.FieldType == typeof(int))
+                    field.SetValue(target, (int)value);
+                else if (field.FieldType == typeof(float))
+                    field.SetValue(target, value);
             }
-            ship.ApplyMovement(dt, moveForward, moveStrafe, rotate);
+        }
+
+        // Handle methods
+        foreach (var method in type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+        {
+            var controlAttr = method.GetCustomAttribute<ControlAttribute>();
+            if (controlAttr == null) continue;
+
+            if (controlMap.TryGetValue(controlAttr.ControlName, out var inputFunc))
+            {
+                float value = inputFunc.Invoke();
+                var parameters = method.GetParameters();
+
+                if (parameters.Length == 0)
+                {
+                    if (value != 0f)
+                        method.Invoke(target, null);
+                }
+                else if (parameters.Length == 1)
+                {
+                    if (parameters[0].ParameterType == typeof(float))
+                        method.Invoke(target, new object[] { value });
+                    else if (parameters[0].ParameterType == typeof(int))
+                        method.Invoke(target, new object[] { (int)value });
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Method {method.Name} has unsupported parameter count.");
+                }
+            }
         }
     }
+
+    public static void Update(float dt, Ship ship)
+    {
+        _previousKeyboardState = _currentKeyboardState;
+        _currentKeyboardState = Keyboard.GetState();
+
+        if (ControlType[ship.Id].Item1 != null)
+        {
+            _previousGamePadState = _currentGamePadState; //todo: this needs to be fixed
+            _currentGamePadState = GamePad.GetState(PlayerIndex.One);
+        }
+        InjectControls(ship, ControlType[ship.Id].Item2);
+    }
+    
+    public static int KeyDown(Keys key) => _currentKeyboardState.IsKeyDown(key) ? 1 : 0;
+    public static int KeyUp(Keys key) => _currentKeyboardState.IsKeyUp(key) ? 1 : 0;
+    public static int KeyPressed(Keys key) => _currentKeyboardState.IsKeyDown(key) && _previousKeyboardState.IsKeyUp(key) ? 1 : 0;
+    public static int KeyReleased(Keys key) => _currentKeyboardState.IsKeyUp(key) && _previousKeyboardState.IsKeyDown(key) ? 1 : 0;
+    
+    public static int PadDown(Buttons button) => _currentGamePadState.IsButtonDown(button) ? 1 : 0;
+    public static int PadUp(Buttons button) => _currentGamePadState.IsButtonUp(button) ? 1 : 0;
+    public static int PadPressed(Buttons button) => _currentGamePadState.IsButtonDown(button) && _previousGamePadState.IsButtonUp(button) ? 1 : 0;
+    public static int PadReleased(Buttons button) => _currentGamePadState.IsButtonUp(button) && _previousGamePadState.IsButtonDown(button) ? 1 : 0;
 }
