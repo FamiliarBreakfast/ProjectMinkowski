@@ -1,5 +1,3 @@
-using MonoGame.Extended;
-
 namespace ProjectMinkowski.Rendering.SplitScreen;
 
 using Microsoft.Xna.Framework;
@@ -10,12 +8,12 @@ using FontStashSharp;
 
 public class SplitScreenRenderer {
     private readonly GraphicsDevice _graphics;
-    private readonly List<OrthographicCamera> _cameras = new();
+    private readonly List<RotatableCamera2D> _cameras = new();
 
     public SplitScreenRenderer(GraphicsDevice graphics) {
         _graphics = graphics;
         for (int i = 0; i < PlayerManager.Count; i++) { //todo: this should be dynamic based on player count
-            _cameras.Add(new OrthographicCamera(_graphics));
+            _cameras.Add(new RotatableCamera2D(graphics));
         }
     }
 
@@ -32,7 +30,12 @@ public class SplitScreenRenderer {
             var camera = _cameras[i];
             // You may need to set camera.Limits or attach a ViewportAdapter
             camera.Position = players[i].Origin.ToVector2();  // Assuming your Ship has a Vector2 Position2D
-            camera.Zoom = 1.0f; // or whatever zoom level you want
+            camera.Zoom = 1.0f + players[i]._zoom * 0.67f; // or whatever zoom level you want
+
+            if (Config.RotateWorld)
+            {
+                camera.Rotation = (float)(-players[i].Rotation + -0.5 * Math.PI);
+            }
 
             RenderPlayerView(players[i], batch, camera);
         }
@@ -41,7 +44,7 @@ public class SplitScreenRenderer {
     }
 
 
-    private void RenderPlayerView(Ship ship, SpriteBatch batch, OrthographicCamera camera)
+    private void RenderPlayerView(Ship ship, SpriteBatch batch, RotatableCamera2D camera)
     {
         var effect = GameResources.BasicEffect!;
         var graphics = _graphics;
@@ -49,9 +52,10 @@ public class SplitScreenRenderer {
         graphics.RasterizerState = RasterizerState.CullNone;
 
         // Use camera for View & Projection
-        effect.Projection = Matrix.CreateOrthographicOffCenter( //todo: replace with own camera matrix that supports rotation
-            -_graphics.Viewport.Height / 2f, _graphics.Viewport.Width / 2f,
-            _graphics.Viewport.Height / 2f, -_graphics.Viewport.Width / 2f, // note: Y axis may be flipped, adjust if needed
+        // Orthographic projection centered on (0,0), so world (0,0) is screen center
+        effect.Projection = Matrix.CreateOrthographicOffCenter(
+            -_graphics.Viewport.Width / 2f, _graphics.Viewport.Width / 2f,   // left, right
+            _graphics.Viewport.Height / 2f, -_graphics.Viewport.Height / 2f, // top, bottom (flip Y for classic 2D)
             0, 1
         );
         effect.View = camera.GetViewMatrix();             // Use camera's view

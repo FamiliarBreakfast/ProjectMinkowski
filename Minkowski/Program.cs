@@ -2,8 +2,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using FontStashSharp;
-using Microsoft.Xna.Framework.Input;
-using MonoGame.Extended.Input;
 using ProjectMinkowski.Entities;
 using ProjectMinkowski.Gameplay;
 using ProjectMinkowski.Multiplayer.Local;
@@ -29,6 +27,7 @@ public static class Config
     /// </summary>
     public const int C = 50;
     public const bool DopplerEffect = false;
+    public const bool RotateWorld = true;
     
     //asteroid stuff
     public const int AsteroidSpacing = 250;
@@ -117,8 +116,6 @@ public class ProjectMinowskiGame : Game
         EntityManager.ProcessQueues();
         
         CollisionManager.Update(dt);
-        
-        KeyboardExtended.Update();
     }
 
     protected override void Draw(GameTime gameTime)

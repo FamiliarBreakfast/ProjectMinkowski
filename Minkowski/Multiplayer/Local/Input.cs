@@ -1,7 +1,6 @@
 using System.Reflection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using MonoGame.Extended.Input;
 using ProjectMinkowski.Entities;
 
 namespace ProjectMinkowski.Multiplayer.Local;
@@ -22,10 +21,11 @@ public static class InputSystem
     private static Dictionary<string, Func<float>> ControllerMap = new()
     {
         { "Parallel", () => _currentGamePadState.ThumbSticks.Left.Y },
-        { "Perpendicular", () => _currentGamePadState.Triggers.Left - _currentGamePadState.Triggers.Right },
+        { "Perpendicular", () => _currentGamePadState.ThumbSticks.Right.X },
         { "Azimuth", () => _currentGamePadState.ThumbSticks.Left.X },
         { "Beam", () => PadPressed(Buttons.A) },
-        { "Mine", () => PadPressed(Buttons.B) }
+        { "Mine", () => PadPressed(Buttons.B) },
+        { "Zoom", () => PadDown(Buttons.X) }
     };
 
     private static Dictionary<string, Func<float>> KeyboardMap = new()

@@ -17,19 +17,24 @@ public class Ship : WorldlineEntity
     
     public Color Color;
     public FrameOfReference Frame;
-    
-    [Worldline] public float Rotation; //todo: cleanup variables
+
+    public float RotationSpeed => _azimuth * RotationPower;
+    [Worldline] public float Rotation;
     [Worldline] public Vector2 Velocity;
     [Worldline] public int Health = 100;
     [Worldline] public byte Flags = 0;
     
-    public const float ThrustPower = 15f;
-    public const float StrafePower = 6f;
-    public const float RotationSpeed = 3f;
+    public const float ThrustPower = 25f;
+    public const float StrafePower = 25f;
+    public const float RotationPower = 4f;
+
+    public int ParticleTimer = 0;
     
     [Control("Parallel")] public float _parallel; 
     [Control("Perpendicular")] public float _perpindicular;
     [Control("Azimuth")] public float _azimuth;
+
+    [Control("Zoom")] public int _zoom;
 
     public Ship(MinkowskiVector absolutePosition, int id) {
         Origin = absolutePosition;
@@ -57,7 +62,7 @@ public class Ship : WorldlineEntity
     [Control("Mine")]
     public void FireMine()
     {
-        var mine = new Mine(Origin.Clone(), this, Rotation, Velocity);
+        var mine = new Mine(Origin.Clone(), this, RotationSpeed, Velocity);
     }
     
     public void DrawHud(SpriteBatch batch)
@@ -74,7 +79,7 @@ public class Ship : WorldlineEntity
     }
 
     public void ApplyMovement(float dt, float forwardInput, float strafeInput, float rotateInput) {
-        Rotation += rotateInput * RotationSpeed * dt;
+        Rotation += rotateInput * RotationPower * dt;
 
         Vector2 forward = new((float)Math.Cos(Rotation), (float)Math.Sin(Rotation));
         Vector2 right = new(-forward.Y, forward.X); // perpendicular
@@ -93,6 +98,19 @@ public class Ship : WorldlineEntity
     
     public override void Update(float deltaTime) //todo: space friction?
     {
+        if (ParticleTimer < 12)
+        {
+            ParticleTimer++;
+        }
+        else
+        {
+            ParticleTimer = 0;
+            if (Math.Abs(_parallel) > 0 || Math.Abs(_perpindicular) > 0)
+            {
+                new Particle(Origin.Clone(), Velocity/2, RotationSpeed, Color, null);
+            }
+        }
+
         ApplyMovement(deltaTime, _parallel, _perpindicular, _azimuth);
         
         Frame.Lightcone.Apex.X = Origin.X;

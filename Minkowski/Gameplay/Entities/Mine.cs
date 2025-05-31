@@ -9,7 +9,7 @@ namespace ProjectMinkowski.Entities;
 public class Mine : WorldlineEntity
 {
     public Ship Ship;
-    private float _rotationalInertia;
+    private float _rotationSpeed;
     [Worldline] public float Rotation;
     [Worldline] public Vector2 Velocity;
     [Worldline] public byte Flags = 0;
@@ -20,11 +20,11 @@ public class Mine : WorldlineEntity
     private static int _FadeTimerMax = 5;
     [Worldline] public float _FadeTimer = _DetonationTimerMax;
     
-    public Mine(MinkowskiVector origin, Ship ship, float rotationalInertia, Vector2 velocity)
+    public Mine(MinkowskiVector origin, Ship ship, float rotationSpeed, Vector2 velocity)
     {
         Ship = ship;
         Origin = origin;
-        _rotationalInertia = rotationalInertia;
+        _rotationSpeed = rotationSpeed;
         Rotation = 0f;
         Velocity = velocity;
         Worldline = new Worldline();
@@ -58,7 +58,7 @@ public class Mine : WorldlineEntity
             Despawn();
         }
         
-        Rotation += _rotationalInertia * deltaTime;
+        Rotation += _rotationSpeed * deltaTime;
         Origin.T += deltaTime;
         Origin.X += Velocity.X * deltaTime;
         Origin.Y += Velocity.Y * deltaTime;
