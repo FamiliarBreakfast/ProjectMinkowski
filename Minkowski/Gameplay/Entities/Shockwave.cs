@@ -7,7 +7,7 @@ namespace ProjectMinkowski.Entities;
 
 public class Shockwave : WorldconeEntity
 {
-    public const int Radius = 70; // Default maximum radius of the shockwave (technically, this is the height of the shockwave cone in Minkowski space)
+    public const int Radius = 150; // Default maximum radius of the shockwave (technically, this is the height of the shockwave cone in Minkowski space)
     
     public Shockwave(MinkowskiVector origin)
     {

@@ -26,7 +26,7 @@ public static class Config
     /// <summary>
     /// The speed of light, in space units per time unit (e.g. 10 means light moves 10 units/sec).
     /// </summary>
-    public const int C = 50;
+    public const int C = 100;
     public const bool DopplerEffect = false;
     public const bool RotateWorld = true;
     
@@ -35,7 +35,7 @@ public static class Config
     public const int AsteroidLoadRadius = 3;
     public const int AsteroidRandomMagnitude = 500;
     
-    public const bool Sound = false;
+    public const bool Sound = false; //doesnt really work in splitscreen does it?
     public const int sampleRate = 44100;
     public const int bufferSize = 2048;
 }

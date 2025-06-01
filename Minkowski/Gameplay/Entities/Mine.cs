@@ -75,6 +75,11 @@ public class Mine : WorldlineEntity
         {
             Flags = 1;
             new Shockwave(Origin.Clone());
+            Sound.Synths.Add(new FunctionSynth(
+                t => (float)(Math.Sin(-t) * 144f + 100f),
+                44100f,
+                0.5f
+            ));
         }
     }
 

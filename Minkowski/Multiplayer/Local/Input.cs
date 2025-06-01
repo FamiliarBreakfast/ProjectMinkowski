@@ -22,7 +22,7 @@ public static class InputSystem
     {
         { "Parallel", () => _currentGamePadState.ThumbSticks.Left.Y },
         { "Perpendicular", () => _currentGamePadState.ThumbSticks.Right.X },
-        { "Azimuth", () => _currentGamePadState.ThumbSticks.Left.X },
+        { "Azimuth", () => _currentGamePadState.ThumbSticks.Left.X * 2 },
         { "Beam", () => PadPressed(Buttons.A) },
         { "Mine", () => PadPressed(Buttons.B) },
         { "Zoom", () => PadDown(Buttons.X) }
@@ -34,13 +34,25 @@ public static class InputSystem
         { "Perpendicular", () => KeyDown(Keys.D) - KeyDown(Keys.A) },
         { "Azimuth", () => KeyDown(Keys.E) - KeyDown(Keys.Q) },
         { "Beam", () => KeyPressed(Keys.Space) },
-        { "Mine", () => KeyPressed(Keys.Z) }
+        { "Mine", () => KeyPressed(Keys.Z) },
+        { "Zoom", () => KeyPressed(Keys.Tab) }
+        //{ "Jump", () => KeyPressed(Keys.X) }
+    };
+    
+    private static Dictionary<string, Func<float>> KeyboardMap2 = new()
+    {
+        { "Parallel", () => KeyDown(Keys.I) - KeyDown(Keys.K) },
+        { "Perpendicular", () => KeyDown(Keys.J) - KeyDown(Keys.L) },
+        { "Azimuth", () => KeyDown(Keys.U) - KeyDown(Keys.O) },
+        { "Beam", () => KeyPressed(Keys.Enter) },
+        { "Mine", () => KeyPressed(Keys.RightShift) },
+        { "Zoom", () => KeyPressed(Keys.OemBackslash) }
     };
     
     private static List<(PlayerIndex?, Dictionary<string, Func<float>>)> ControlType = new()
     {
         (null, KeyboardMap),
-        (PlayerIndex.One, ControllerMap),
+        (PlayerIndex.One, ControllerMap), //(null, KeyboardMap2),
         (PlayerIndex.Two, ControllerMap),
         (PlayerIndex.Three, ControllerMap)
     };

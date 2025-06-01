@@ -31,7 +31,7 @@ public class Bullet : TracerEntity
 
 public class BulletTracer : WorldlineEntity //todo: this does not need to be a WorldlineEntity
 {
-    public Ship Ship;
+    public Ship? Ship;
     public Vector2 Origin;
     public float Rotation;
     public Color Color;
@@ -39,7 +39,7 @@ public class BulletTracer : WorldlineEntity //todo: this does not need to be a W
     private static int _fadeTimerMax = 100;
     private int _fadeTimer;
     private static float _tracerLength = Config.C * _fadeTimerMax * 2; //ensure tracer end is never visible
-    public BulletTracer(Ship ship, Color color, Vector2 origin, float rotation)
+    public BulletTracer(Ship? ship, Color color, Vector2 origin, float rotation)
     {
         Ship = ship;
         Origin = origin;
@@ -65,7 +65,7 @@ public class BulletTracer : WorldlineEntity //todo: this does not need to be a W
 
     public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship)
     {
-        if (ship == Ship)
+        if (ship == Ship || Ship == null)
         {
             Vector2 direction = new Vector2(MathF.Cos(Rotation), MathF.Sin(Rotation));
             

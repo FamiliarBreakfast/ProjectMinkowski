@@ -24,12 +24,14 @@ public class Ship : WorldlineEntity
     [Worldline] public Vector2 Velocity;
     [Worldline] public int Health = 100;
     [Worldline] public byte Flags = 0;
+
+    [Worldline] public Vector2 JumpStartPosition;
     
     private FunctionSynth _synth;
     
-    public const float ThrustPower = 25f;
-    public const float StrafePower = 25f;
-    public const float RotationPower = 4f;
+    public const float ThrustPower = 50f;
+    public const float StrafePower = 50f;
+    public const float RotationPower = 2f;
 
     public int ParticleTimer = 0;
     
@@ -71,7 +73,32 @@ public class Ship : WorldlineEntity
     [Control("Mine")]
     public void FireMine()
     {
+        Sound.Synths.Add(new FunctionSynth(
+            t => (float)(200f * Math.Exp(-9.7*t) + 20f * Math.Sin(2 * Math.PI * 18f * t)),
+            44100f,
+            0.3f
+        ));
+        
         var mine = new Mine(Origin.Clone(), this, RotationSpeed, Velocity);
+    }
+
+    [Control("Jump")]
+    public void Jump()
+    {
+        Flags = (byte)(Flags | 0b_1000_0000); //set jump start bit
+        JumpStartPosition = Origin.ToVector2();
+        Worldline.AddEvent(this);
+
+        Flags = (byte)(Flags & ~0b_1000_0000);
+        Origin.X += 100 * Math.Cos(Rotation);
+        Origin.Y += 100 * Math.Sin(Rotation);
+        
+        Frame.Lightcone.Apex.X = Origin.X;
+        Frame.Lightcone.Apex.Y = Origin.Y;
+        Frame.Lightcone.Apex.T = Origin.T;
+        Frame.Velocity = Velocity;
+        
+        Worldline.AddEvent(this);
     }
     
     public void DrawHud(SpriteBatch batch)
@@ -129,29 +156,11 @@ public class Ship : WorldlineEntity
         }
         else
         {
-            //Flags = (byte)(Flags & ~0b_0000_1100); //clear bits
-            Flags = 0;
+            Flags = (byte)(Flags & ~0b_0000_1100); //clear bits
+            //Flags = 0;
             Sound.Synths.Remove(_synth);
             _synth = null!;
         }
-        
-        // if (ParticleTimer < 12)
-        // {
-        //     ParticleTimer++;
-        // }
-        // else
-        // {
-        //     ParticleTimer = 0;
-        //     if (Math.Abs(_parallel) > 0 || Math.Abs(_perpindicular) > 0)
-        //     {
-        //         new Particle(Origin.Clone(), Velocity/2, RotationSpeed, Color, null);
-        //         Sound.Synths.Add(new FunctionSynth(
-        //             t => (float)(150f),
-        //             44100f,
-        //             -1
-        //         ));
-        //     }
-        // }
 
         ApplyMovement(deltaTime, _parallel, _perpindicular, _azimuth);
         
@@ -179,7 +188,14 @@ public class Ship : WorldlineEntity
             Vector2 position = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Position", interpolate: true);
             Vector2 velocity = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Velocity", interpolate: true);
             float rotation = Worldline.GetVisibleVariable<float>(ship.Origin, "Rotation", interpolate: true);
+            byte flags = Worldline.GetVisibleVariable<byte>(ship.Origin, "Flags", interpolate: false);
+            Vector2 jumpPos = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "JumpStartPosition", interpolate: false);
 
+            if ((flags & 0b_1000_0000) != 0)
+            {
+                new BulletTracer(null, Color.White, position, rotation);
+            }
+            
             Vector2 relativeVelocity = ship.Frame.LorentzTransformVelocity(velocity);
 
             Color color = Config.DopplerEffect switch
