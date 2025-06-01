@@ -1,6 +1,7 @@
 using Clipper2Lib;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using ProjectMinkowski.Multiplayer.Local;
 using ProjectMinkowski.Relativity;
@@ -23,6 +24,8 @@ public class Ship : WorldlineEntity
     [Worldline] public Vector2 Velocity;
     [Worldline] public int Health = 100;
     [Worldline] public byte Flags = 0;
+    
+    private FunctionSynth _synth;
     
     public const float ThrustPower = 25f;
     public const float StrafePower = 25f;
@@ -54,9 +57,15 @@ public class Ship : WorldlineEntity
     [Control("Beam")]
     public void FireBeam()
     {
+        Sound.Synths.Add(new FunctionSynth(
+            t => (float)(1400f * Math.Exp(-9.7*t) + 20f * Math.Sin(2 * Math.PI * 18f * t)),
+            44100f,
+            0.3f
+        ));
+        
         var bullet = new Bullet(Origin.Clone(), this);
         bullet.Tracers[this] = new BulletTracer(this, bullet.Ship.Color, Origin.ToVector2(), bullet.Line.Phi);
-        Flags = 0b1;
+        //Flags = 0b1;
     }
 
     [Control("Mine")]
@@ -98,18 +107,51 @@ public class Ship : WorldlineEntity
     
     public override void Update(float deltaTime) //todo: space friction?
     {
-        if (ParticleTimer < 12)
+        if (Math.Abs(_parallel) > 0.01f || Math.Abs(_perpindicular) > 0.01f)
         {
-            ParticleTimer++;
+            if (ParticleTimer < 12) ParticleTimer++; else
+            {
+                ParticleTimer = 0;
+                new Particle(Origin.Clone(), Velocity / 2, RotationSpeed, Color, null);
+            }
+
+            if ((Flags & 0b_0000_1000) == 0) //if sound bit off
+            {
+                Sound.Synths.Add(_synth = new FunctionSynth(
+                    t => (float)(150f + 20f * Math.Sin(2 * Math.PI * 18f * t)),
+                    44100f,
+                    -1
+                ));
+            }
+            
+            Flags = (byte)(Flags | 0b_0000_1000); //set sound bit on
+            Flags = (byte)(Flags | 0b_0000_0100); //set particle bit on
         }
         else
         {
-            ParticleTimer = 0;
-            if (Math.Abs(_parallel) > 0 || Math.Abs(_perpindicular) > 0)
-            {
-                new Particle(Origin.Clone(), Velocity/2, RotationSpeed, Color, null);
-            }
+            //Flags = (byte)(Flags & ~0b_0000_1100); //clear bits
+            Flags = 0;
+            Sound.Synths.Remove(_synth);
+            _synth = null!;
         }
+        
+        // if (ParticleTimer < 12)
+        // {
+        //     ParticleTimer++;
+        // }
+        // else
+        // {
+        //     ParticleTimer = 0;
+        //     if (Math.Abs(_parallel) > 0 || Math.Abs(_perpindicular) > 0)
+        //     {
+        //         new Particle(Origin.Clone(), Velocity/2, RotationSpeed, Color, null);
+        //         Sound.Synths.Add(new FunctionSynth(
+        //             t => (float)(150f),
+        //             44100f,
+        //             -1
+        //         ));
+        //     }
+        // }
 
         ApplyMovement(deltaTime, _parallel, _perpindicular, _azimuth);
         
@@ -124,7 +166,7 @@ public class Ship : WorldlineEntity
         
         Worldline.AddEvent(this);
         
-        Flags = 0b0;
+        //Flags = 0b0;
         //Console.WriteLine($"[Ship {GetHashCode()}] added event: Vel = {Velocity.Length():0.000} | T = {AbsolutePosition.T:0.000}");
     }
     

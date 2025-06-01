@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using FontStashSharp;
+using Microsoft.Xna.Framework.Audio;
 using ProjectMinkowski.Entities;
 using ProjectMinkowski.Gameplay;
 using ProjectMinkowski.Multiplayer.Local;
@@ -33,6 +34,10 @@ public static class Config
     public const int AsteroidSpacing = 250;
     public const int AsteroidLoadRadius = 3;
     public const int AsteroidRandomMagnitude = 500;
+    
+    public const bool Sound = false;
+    public const int sampleRate = 44100;
+    public const int bufferSize = 2048;
 }
 
 public static class GameResources {
@@ -47,6 +52,7 @@ public class ProjectMinowskiGame : Game
     private SpriteBatch spriteBatch;
     private GraphicsDeviceManager graphics;
     private SplitScreenRenderer renderer;
+    private DynamicSoundEffectInstance synthInstance;
 
     public ProjectMinowskiGame() {
         graphics = new GraphicsDeviceManager(this);
@@ -91,6 +97,12 @@ public class ProjectMinowskiGame : Game
         
         spriteBatch = new SpriteBatch(GraphicsDevice);
         renderer = new SplitScreenRenderer(GraphicsDevice);
+
+        if (Config.Sound)
+        {
+            synthInstance = new DynamicSoundEffectInstance(Config.sampleRate, AudioChannels.Mono);
+            synthInstance.Play();
+        }
     }
 
     protected override void Update(GameTime gameTime)
@@ -111,11 +123,13 @@ public class ProjectMinowskiGame : Game
         {
             entity.Update(dt);
         }
-
-        // Process spawn/despawn queues
-        EntityManager.ProcessQueues();
         
+        EntityManager.ProcessQueues();
         CollisionManager.Update(dt);
+        if (Config.Sound)
+        {
+            Sound.Update(dt, synthInstance);
+        }
     }
 
     protected override void Draw(GameTime gameTime)

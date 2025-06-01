@@ -5,16 +5,18 @@
 ***Project Minkowski*** is licensed under the **AGPL-V3**, except where otherwise noted.
 
 **TODO:**
-- Asteroids or some kind of object fields (in progress)
+- Asteroids or some kind of object fields (needs work, acceptable)
 - doppler effect (hiatus)
 - More weapons (in progress)
 - better movement (in progress)
 - - powerups/boosts
 - - possible ftl boost powerup for short periods of time
 - Powerups?
-- Animations/particles
+- Animations/particles (in progress)
+- sound (in progress)
+- better animation/sound system instead of flags byte
+- or some kind of abstraction at least
 - refactor entity/collision system for better performance
-- custom input system (in progress)
 - predictive aim reticle
 - FTL?? There is engine support (in the sense it doesnt immedietly crash)
 - - could cause paradoxes?
@@ -24,8 +26,7 @@
 - - is this even possible?
 - - - backwards weapon fire?
 - - - reactive defense?
-- the camera should rotate instead of the ship
-- remove monogame extended
+- (long term) multithreading
 - (long term) teams and chat (with signal delay)
 - (long term) Online networking
 - (long term) Partial general relativity
