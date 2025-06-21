@@ -64,11 +64,9 @@ tldw: worldlines worldcones SPACE
 ### Long Term
 
 - Multithreading
-
-
 - Online networking
 - - Teams and Chat (with signal delay)
 
 
-[^1]: **Motomangucode Font** is licensed under the **Creative Commons Attribution-NoDerivatives 4.0 International License**\
+[^1]: **Motomangucode Font** is licensed under the **Creative Commons Attribution-NoDerivatives 4.0 International License**
 [^2]: **Space Mono Font** is licensed under the **Open Font License (OFL)**
