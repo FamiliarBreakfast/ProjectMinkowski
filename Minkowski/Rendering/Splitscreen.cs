@@ -1,3 +1,4 @@
+// ReSharper disable PossibleLossOfFraction
 namespace ProjectMinkowski.Rendering.SplitScreen;
 
 using Microsoft.Xna.Framework;
@@ -58,15 +59,17 @@ public class SplitScreenRenderer {
             _graphics.Viewport.Height / 2f, -_graphics.Viewport.Height / 2f, // top, bottom (flip Y for classic 2D)
             0, 1
         );
+        
         effect.View = camera.GetViewMatrix();             // Use camera's view
         effect.World = Matrix.Identity;                   // Your world matrix
 
         batch.End();
-
+        
         foreach (var entity in EntityManager.Entities)
             entity.VertexDraw(graphics, effect, ship);
 
         graphics.BlendState = BlendState.AlphaBlend;
+        
         foreach (EffectPass pass in effect.CurrentTechnique.Passes)
         {
             foreach (VertexPositionColor[] shape in ship.Shapes)
@@ -96,6 +99,34 @@ public class SplitScreenRenderer {
         }
 
         batch.End();
+
+        effect.View = Matrix.Identity;
+        
+        foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            //draw border
+            Color borderColor = Color.White;
+            VertexPositionColor[] border = new VertexPositionColor[]
+            {
+                new VertexPositionColor(new Vector3(-_graphics.Viewport.Width/2+1, -_graphics.Viewport.Height/2-1, 0), //top left
+                    borderColor),
+                new VertexPositionColor(new Vector3(-_graphics.Viewport.Width/2+1, _graphics.Viewport.Height/2-1, 0), //bottom left
+                    borderColor),
+                new VertexPositionColor(new Vector3(_graphics.Viewport.Width/2, _graphics.Viewport.Height/2-1, 0), //bottom right
+                    borderColor),
+                new VertexPositionColor(new Vector3(_graphics.Viewport.Width/2, -_graphics.Viewport.Height/2-1, 0), //top right
+                    borderColor)
+            };
+            graphics.DrawUserPrimitives(
+                PrimitiveType.LineStrip,
+                border,
+                0,
+                border.Length - 1
+            );
+        }
+
+
         batch.Begin();
         ship.DrawHud(batch);
         batch.End();
