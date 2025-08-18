@@ -28,15 +28,20 @@ public static class Config
     /// </summary>
     public const int C = 100;
     /// <summary>
-    /// Gravitational constant, in C/s per second over mass per distance (e.g. 10 means a unit mass is accelerated by 10C/s every F/2 seconds at one light-second distance).
-    /// 1 for natural units. Effectively scales the mass of all objects.
+    /// Gravitational constant. Sets the overall strength of gravity.
+    /// Appears in the acceleration formula: a = G * (m1 * m2) / r^F
+    /// where m is the other body's mass, r is distance, and F is the exponent.
+    /// Larger G means stronger acceleration at all distances.
     /// </summary>
-    public const double G = 2;
+    public const double G = 1;
     /// <summary>
-    /// Gravitational exponent, unitless. Changes the shape of the curve of gravitation equations.
-    /// 2 in reality. Lower numbers makes gravity a more shallow force, building up over longer distances.
+    /// Gravitational exponent, unitless.
+    /// Controls how acceleration falls off with distance in the formula: a = G * (m1 * m2) / r^F.
+    /// F = 2 gives the real-world inverse-square law.
+    /// Smaller values make gravity decay more slowly with distance,
+    /// larger values make it decay more quickly.
     /// </summary>
-    public const double F = 0.9; //0.9 is kinda fun
+    public const double F = 0.9; // 0.9 is kinda fun
     public const bool DopplerEffect = false;
     public const bool RotateWorld = true;
     

@@ -47,7 +47,7 @@ public class Ship : MotileEntity
         Frame = new FrameOfReference(absolutePosition, Velocity);
         Id = id;
         Color = ColorHelper.GetColorFromID(Id);
-        Mass = 250;
+        Mass = 500;
         
         Polygon = new PathD
         {
