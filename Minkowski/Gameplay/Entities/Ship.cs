@@ -9,7 +9,7 @@ using ProjectMinkowski.Rendering;
 
 namespace ProjectMinkowski.Entities;
 
-public class Ship : WorldlineEntity
+public class Ship : MotileEntity
 {
     public int Id;
     
@@ -20,8 +20,8 @@ public class Ship : WorldlineEntity
     public FrameOfReference Frame;
 
     public float RotationSpeed => _azimuth * RotationPower;
-    [Worldline] public float Rotation;
-    [Worldline] public Vector2 Velocity;
+    // [Worldline] public float Rotation;
+    // [Worldline] public Vector2 Velocity;
     [Worldline] public int Health = 100;
     [Worldline] public byte Flags = 0;
 
@@ -47,7 +47,8 @@ public class Ship : WorldlineEntity
         Frame = new FrameOfReference(absolutePosition, Velocity);
         Id = id;
         Color = ColorHelper.GetColorFromID(Id);
-
+        Mass = 250;
+        
         Polygon = new PathD
         {
             new PointD(20,0),
@@ -79,7 +80,10 @@ public class Ship : WorldlineEntity
             0.3f
         ));
         
-        var mine = new Mine(Origin.Clone(), this, RotationSpeed, Velocity);
+        Vector2 azimuth = new Vector2(MathF.Cos(Rotation), MathF.Sin(Rotation));
+        var mine = new Mine(Origin.Clone(), this, RotationSpeed, Velocity+azimuth*-2);
+        mine.Origin.X += azimuth.X*-1.2;
+        mine.Origin.Y += azimuth.Y*-1.2;
     }
 
     [Control("Jump")]
@@ -116,20 +120,29 @@ public class Ship : WorldlineEntity
 
     public void ApplyMovement(float dt, float forwardInput, float strafeInput, float rotateInput) {
         Rotation += rotateInput * RotationPower * dt;
-
+        
         Vector2 forward = new((float)Math.Cos(Rotation), (float)Math.Sin(Rotation));
         Vector2 right = new(-forward.Y, forward.X); // perpendicular
-
+        
         // Proper acceleration in ship's rest frame
-        Vector2 properAccel = 
+        Acceleration += 
             forward * forwardInput * ThrustPower +
             right * strafeInput * StrafePower;
-
-        // Apply relativistic correction
-        float gamma = FrameOfReference.Gamma(Velocity);
-        Vector2 coordAccel = properAccel / (gamma * gamma * gamma);
+        
+        // // Apply relativistic correction
+        // float gamma = FrameOfReference.Gamma(Velocity);
+        // Vector2 coordAccel = properAccel / (gamma * gamma * gamma);
+        //
+        // Velocity += coordAccel * dt;
+        
+        float gamma = Gamma(Velocity);
+        Vector2 coordAccel = Acceleration / (gamma * gamma * gamma);
 
         Velocity += coordAccel * dt;
+        Origin.X += Velocity.X * dt;
+        Origin.Y += Velocity.Y * dt;
+        Origin.T += dt; //ensure we proceed forward through time. generally considered a good thing
+        Acceleration = new Vector2(0);
     }
     
     public override void Update(float deltaTime) //todo: space friction?
@@ -168,10 +181,6 @@ public class Ship : WorldlineEntity
         Frame.Lightcone.Apex.Y = Origin.Y;
         Frame.Lightcone.Apex.T = Origin.T;
         Frame.Velocity = Velocity;
-        
-        Origin.X += Velocity.X * deltaTime;
-        Origin.Y += Velocity.Y * deltaTime;
-        Origin.T += deltaTime; //ensure we proceed forward through time. generally considered a good thing
         
         Worldline.AddEvent(this);
         

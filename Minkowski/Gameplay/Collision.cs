@@ -7,21 +7,29 @@ using ProjectMinkowski.Rendering;
 
 namespace ProjectMinkowski.Gameplay;
 
-public delegate void CollisionHandler(RenderableEntity a, RenderableEntity b);
+public delegate void CollisionHandler(object a, object b);
+
 public static class CollisionManager
 {
     private static Dictionary<(Type, Type), CollisionHandler> handlers = new();
+
+    static CollisionManager()
+    {
+        AutoRegisterHandlers();
+    }
+
     public static void Register<TA, TB>(CollisionHandler handler)
         where TA : RenderableEntity
         where TB : RenderableEntity
     {
         handlers[(typeof(TA), typeof(TB))] = handler;
     }
+
     public static bool TryGetHandler(Type a, Type b, out CollisionHandler handler)
     {
         return handlers.TryGetValue((a, b), out handler);
     }
-    
+
     public static void Update(float dt)
     {
         var entities = EntityManager.Entities;
@@ -33,31 +41,45 @@ public static class CollisionManager
             for (int j = i + 1; j < count; j++)
             {
                 var b = entities[j];
-                // Try both (A,B) and (B,A) handler orderings for symmetry
-                if (CollisionManager.TryGetHandler(a.GetType(), b.GetType(), out var handler))
+                if (TryGetHandler(a.GetType(), b.GetType(), out var handler))
                     handler(a, b);
-                else if (CollisionManager.TryGetHandler(b.GetType(), a.GetType(), out handler))
-                    handler(b, a);
+                else if (TryGetHandler(b.GetType(), a.GetType(), out handler))
+                    handler(b, a); // symmetric fallback
             }
         }
     }
-    
-    static bool InvokeCollisionHandler(RenderableEntity a, RenderableEntity b)
-    {
-        var method = typeof(CollisionManager).GetMethod(
-            "Collide",
-            BindingFlags.Public | BindingFlags.Static,
-            null,
-            new Type[] { a.GetType(), b.GetType() },
-            null);
 
-        if (method != null)
+    private static void AutoRegisterHandlers()
+    {
+        var asm = Assembly.GetExecutingAssembly();
+        var allTypes = asm.GetTypes()
+            .Where(t => typeof(RenderableEntity).IsAssignableFrom(t))
+            .ToArray();
+
+        foreach (var type in asm.GetTypes())
         {
-            method.Invoke(null, new object[] { a, b });
-            return true;
+            foreach (var method in type.GetMethods(
+                         BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static))
+            {
+                if (method.Name != "Collide") continue;
+
+                var p = method.GetParameters();
+                if (p.Length != 2) continue;
+
+                var pA = p[0].ParameterType;
+                var pB = p[1].ParameterType;
+
+                // Wrap reflection method into delegate
+                CollisionHandler del = (a, b) => method.Invoke(null, new object[] { a, b });
+
+                // Register for (pA, pB) and all subclass combinations
+                foreach (var subA in allTypes.Where(t => pA.IsAssignableFrom(t)))
+                foreach (var subB in allTypes.Where(t => pB.IsAssignableFrom(t)))
+                    handlers[(subA, subB)] = del;
+            }
         }
-        return false;
     }
+
 
     public static void Collide(Ship ship, Bullet bullet)
     {
@@ -77,9 +99,23 @@ public static class CollisionManager
             }
         }
     }
-    public static void Collide(Ship a, Ship b)
+    
+    public static void Collide(Asteroid asteroid, Bullet bullet) //broken
     {
+        Vector2? point = bullet.Line.PositionAtZ((float)asteroid.Origin.T);
+        if (point != null) {
+            Vector2 p = (Vector2)point;
+            if (Vector2.DistanceSquared(p, asteroid.Origin.ToVector2()) < Math.Pow(asteroid.Radius, 2))
+            {
+                bullet.Line.SetEndTime((float)asteroid.Origin.T);
+                asteroid.Despawn();
+            }
+        }
     }
+    
+    // public static void Collide(Ship a, Ship b)
+    // {
+    // }
     
     public static void Collide(Ship ship, Mine mine)
     {
@@ -144,16 +180,38 @@ public static class CollisionManager
         }
     }
 
-    public static void Collide(Bullet bullet, Asteroid asteroid) //broken
+    public static void Collide(Ship ship, WorldlineEntity entity)
     {
-            Vector2? point = bullet.Line.PositionAtZ((float)asteroid.Origin.T);
-            if (point != null) {
-                Vector2 p = (Vector2)point;
-                if (Vector2.DistanceSquared(p, asteroid.Origin.ToVector2()) < Math.Pow(asteroid.Radius, 2))
-                {
-                    bullet.Line.SetEndTime((float)asteroid.Origin.T);
-                    asteroid.Despawn();
-                }
+        //append to list nearby masses for event sightlines
+    }
+
+    public static void Collide(MotileEntity a, MotileEntity b)
+    {
+        //newtons gravitation
+        if (a.Mass != 0 || b.Mass != 0)
+        {
+            double distance = Vector2.Distance(a.Origin.ToVector2(), b.Origin.ToVector2());
+            //a=f/m
+            double force;
+            if (distance > 3)
+            {
+                force = Config.G * ((a.Mass * b.Mass) / (Math.Pow(distance, Config.F)));
             }
+            else
+            {
+                force = a.Mass * b.Mass * -10;
+            }
+
+            double aAccel = Math.Min(-force / a.Mass, Math.Pow(Config.C, 0.5));
+            double bAccel = Math.Min(-force / b.Mass, Math.Pow(Config.C, 0.5));
+            //for a
+            Vector2 aVec = a.Origin.ToVector2() - b.Origin.ToVector2();
+            aVec.Normalize();
+            a.Acceleration = aVec * (float)aAccel;
+            //for b
+            Vector2 bVec = b.Origin.ToVector2() - a.Origin.ToVector2();
+            bVec.Normalize();
+            b.Acceleration = bVec * (float)bAccel;
+        }
     }
 }

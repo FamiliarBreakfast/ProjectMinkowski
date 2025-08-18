@@ -111,13 +111,13 @@ namespace ProjectMinkowski.Relativity {
         public bool HasVisibleEvent(MinkowskiVector origin)
             => GetVisibleEventIndex(origin) >= 0;
 
-        public int GetVisibleEventIndex(MinkowskiVector origin)
+        public int GetVisibleEventIndex(MinkowskiVector origin) //only works at subluminal speeds
         {
             if (Events.Count == 0)
                 return -1;
         
             Vector2 observerPos = new((float)origin.X, (float)origin.Y);
-            float observerTime = (float)origin.T;
+            float observerTime = (float)origin.T; //todo: adjust for curved spacetime
         
             int low = 0, high = Events.Count - 1, resultIndex = -1;
         

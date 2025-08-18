@@ -6,12 +6,10 @@ using ProjectMinkowski.Rendering;
 
 namespace ProjectMinkowski.Entities;
 
-public class Mine : WorldlineEntity
+public class Mine : MotileEntity
 {
     public Ship Ship;
     private float _rotationSpeed;
-    [Worldline] public float Rotation;
-    [Worldline] public Vector2 Velocity;
     [Worldline] public byte Flags = 0;
     
     private static int _DetonationTimerMax = 3;
@@ -27,6 +25,7 @@ public class Mine : WorldlineEntity
         _rotationSpeed = rotationSpeed;
         Rotation = 0f;
         Velocity = velocity;
+        Mass = 1;
         Worldline = new Worldline();
         
         Polygon = new PathD //unit octagon
@@ -44,6 +43,7 @@ public class Mine : WorldlineEntity
 
     public override void Update(float deltaTime)
     {
+        ApplyMovement(deltaTime);
         //foreach player if all see flags == 1 then despawn
         int i = 0;
         foreach (Ship ship in PlayerManager.Ships)
@@ -59,9 +59,9 @@ public class Mine : WorldlineEntity
         }
         
         Rotation += _rotationSpeed * deltaTime;
-        Origin.T += deltaTime;
-        Origin.X += Velocity.X * deltaTime;
-        Origin.Y += Velocity.Y * deltaTime;
+        // Origin.T += deltaTime;
+        // Origin.X += Velocity.X * deltaTime;
+        // Origin.Y += Velocity.Y * deltaTime;
         
         _DetonationTimer -= deltaTime; // Convert deltaTime to milliseconds
         if (Flags == 1)

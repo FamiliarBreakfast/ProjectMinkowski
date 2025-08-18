@@ -44,6 +44,30 @@ public abstract class WorldlineEntity : RenderableEntity
     }
 }
 
+public abstract class MotileEntity : WorldlineEntity
+{
+    public int Mass = 100;
+    [Worldline] public float Rotation = 0;
+    [Worldline] public Vector2 Velocity = Vector2.Zero;
+    public Vector2 Acceleration;
+
+    public void ApplyMovement(float dt)
+    {
+        float gamma = Gamma(Velocity);
+        Vector2 coordAccel = Acceleration / (gamma * gamma * gamma);
+
+        Velocity += coordAccel * dt;
+        Origin.X += Velocity.X * dt;
+        Origin.Y += Velocity.Y * dt;
+        Origin.T += dt;
+    }
+    public static float Gamma(Vector2 v) {
+        float c = (float)Config.C;
+        float speed2 = v.LengthSquared();
+        return 1f / MathF.Sqrt(1f - speed2 / (c * c));
+    }
+}
+
 public abstract class TracerEntity : RenderableEntity
 {
     public Line Line;

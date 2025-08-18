@@ -24,9 +24,19 @@ public static class Program
 public static class Config
 {
     /// <summary>
-    /// The speed of light, in space units per time unit (e.g. 10 means light moves 10 units/sec).
+    /// The speed of light, in distance per time unit (e.g. 10 means light moves 10 units/sec).
     /// </summary>
     public const int C = 100;
+    /// <summary>
+    /// Gravitational constant, in C/s per second over mass per distance (e.g. 10 means a unit mass is accelerated by 10C/s every F/2 seconds at one light-second distance).
+    /// 1 for natural units. Effectively scales the mass of all objects.
+    /// </summary>
+    public const double G = 2;
+    /// <summary>
+    /// Gravitational exponent, unitless. Changes the shape of the curve of gravitation equations.
+    /// 2 in reality. Lower numbers makes gravity a more shallow force, building up over longer distances.
+    /// </summary>
+    public const double F = 0.9; //0.9 is kinda fun
     public const bool DopplerEffect = false;
     public const bool RotateWorld = true;
     
@@ -84,16 +94,7 @@ public class ProjectMinowskiGame : Game
 
         //WorldconeAnalyticalIntersectionTests.RunAll();
         
-        //todo: urgent: automate
-        CollisionManager.Register<Ship, Ship>((a, b) => CollisionManager.Collide((Ship)a, (Ship)b));
-        CollisionManager.Register<Ship, Bullet>((a, b) => CollisionManager.Collide((Ship)a, (Bullet)b));
-        CollisionManager.Register<Mine, Bullet>((a, b) => CollisionManager.Collide((Mine)a, (Bullet)b));
-        CollisionManager.Register<Ship, Mine>((a, b) => CollisionManager.Collide((Ship)a, (Mine)b));
-        CollisionManager.Register<Ship, Shockwave>((a, b) => CollisionManager.Collide((Ship)a, (Shockwave)b));
-        CollisionManager.Register<Ship, Asteroid>((a, b) => CollisionManager.Collide((Ship)a, (Asteroid)b));
-        CollisionManager.Register<Bullet, Asteroid>((a, b) => CollisionManager.Collide((Bullet)a, (Asteroid)b));
-        
-        PlayerManager.InitializeLocalPlayers(2); // or 4
+        PlayerManager.InitializeLocalPlayers(4); // or 4
         
         spriteBatch = new SpriteBatch(GraphicsDevice);
         renderer = new SplitScreenRenderer(GraphicsDevice);
