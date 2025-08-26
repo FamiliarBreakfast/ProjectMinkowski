@@ -20,9 +20,9 @@ public static class InputSystem
 {
     private static Dictionary<string, Func<float>> ControllerMap = new()
     {
-        { "Parallel", () => _currentGamePadState.ThumbSticks.Left.Y },
-        { "Perpendicular", () => _currentGamePadState.ThumbSticks.Right.X },
-        { "Azimuth", () => _currentGamePadState.ThumbSticks.Left.X * 2 },
+        { "Parallel", () => _currentGamePadState[_currship].ThumbSticks.Left.Y },
+        { "Perpendicular", () => _currentGamePadState[_currship].ThumbSticks.Right.X },
+        { "Azimuth", () => _currentGamePadState[_currship].ThumbSticks.Left.X * 2 },
         { "Beam", () => PadPressed(Buttons.A) },
         { "Mine", () => PadPressed(Buttons.B) },
         { "Zoom", () => PadDown(Buttons.X) }
@@ -35,7 +35,7 @@ public static class InputSystem
         { "Azimuth", () => KeyDown(Keys.E) - KeyDown(Keys.Q) },
         { "Beam", () => KeyPressed(Keys.Space) },
         { "Mine", () => KeyPressed(Keys.Z) },
-        { "Zoom", () => KeyPressed(Keys.Tab) }
+        { "Zoom", () => KeyDown(Keys.Tab) }
         //{ "Jump", () => KeyPressed(Keys.X) }
     };
     
@@ -44,23 +44,31 @@ public static class InputSystem
         { "Parallel", () => KeyDown(Keys.I) - KeyDown(Keys.K) },
         { "Perpendicular", () => KeyDown(Keys.J) - KeyDown(Keys.L) },
         { "Azimuth", () => KeyDown(Keys.U) - KeyDown(Keys.O) },
-        { "Beam", () => KeyPressed(Keys.Enter) },
-        { "Mine", () => KeyPressed(Keys.RightShift) },
-        { "Zoom", () => KeyPressed(Keys.OemBackslash) }
+        { "Beam", () => KeyPressed(Keys.M) },
+        { "Mine", () => KeyPressed(Keys.N) },
+        { "Zoom", () => KeyDown(Keys.B) }
     };
     
     private static List<(PlayerIndex?, Dictionary<string, Func<float>>)> ControlType = new()
     {
         (null, KeyboardMap),
-        (PlayerIndex.One, ControllerMap), //(null, KeyboardMap2),
+        (null, KeyboardMap2),
+        (PlayerIndex.One, ControllerMap),
         (PlayerIndex.Two, ControllerMap),
-        (PlayerIndex.Three, ControllerMap)
+        
+        
+        
+        
+        //,
+        //(PlayerIndex.Three, ControllerMap),
+        //(PlayerIndex.Four, ControllerMap)
     };
     
     private static KeyboardState _previousKeyboardState;
     private static KeyboardState _currentKeyboardState;
-    private static GamePadState _previousGamePadState;
-    private static GamePadState _currentGamePadState;
+    private static Dictionary<int, GamePadState> _previousGamePadState = new();
+    private static Dictionary<int, GamePadState> _currentGamePadState = new();
+    private static int _currship = 0;
     
     public static void InjectControls(object target, Dictionary<string, Func<float>> controlMap)
     {
@@ -120,8 +128,13 @@ public static class InputSystem
 
         if (ControlType[ship.Id].Item1 != null)
         {
-            _previousGamePadState = _currentGamePadState; //todo: this needs to be fixed
-            _currentGamePadState = GamePad.GetState(PlayerIndex.One);
+            _currship = ship.Id;
+            if (_currentGamePadState.ContainsKey(_currship))
+            {
+                _previousGamePadState[_currship] = _currentGamePadState[_currship]; //todo: this needs to be fixed
+            }
+
+            _currentGamePadState[_currship] = GamePad.GetState((PlayerIndex)ControlType[ship.Id].Item1);
         }
         InjectControls(ship, ControlType[ship.Id].Item2);
     }
@@ -131,8 +144,8 @@ public static class InputSystem
     public static int KeyPressed(Keys key) => _currentKeyboardState.IsKeyDown(key) && _previousKeyboardState.IsKeyUp(key) ? 1 : 0;
     public static int KeyReleased(Keys key) => _currentKeyboardState.IsKeyUp(key) && _previousKeyboardState.IsKeyDown(key) ? 1 : 0;
     
-    public static int PadDown(Buttons button) => _currentGamePadState.IsButtonDown(button) ? 1 : 0;
-    public static int PadUp(Buttons button) => _currentGamePadState.IsButtonUp(button) ? 1 : 0;
-    public static int PadPressed(Buttons button) => _currentGamePadState.IsButtonDown(button) && _previousGamePadState.IsButtonUp(button) ? 1 : 0;
-    public static int PadReleased(Buttons button) => _currentGamePadState.IsButtonUp(button) && _previousGamePadState.IsButtonDown(button) ? 1 : 0;
+    public static int PadDown(Buttons button) => _currentGamePadState[_currship].IsButtonDown(button) ? 1 : 0;
+    public static int PadUp(Buttons button) => _currentGamePadState[_currship].IsButtonUp(button) ? 1 : 0;
+    public static int PadPressed(Buttons button) => _currentGamePadState[_currship].IsButtonDown(button) && _previousGamePadState[_currship].IsButtonUp(button) ? 1 : 0;
+    public static int PadReleased(Buttons button) => _currentGamePadState[_currship].IsButtonUp(button) && _previousGamePadState[_currship].IsButtonDown(button) ? 1 : 0;
 }

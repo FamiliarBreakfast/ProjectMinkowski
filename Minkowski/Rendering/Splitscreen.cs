@@ -31,7 +31,7 @@ public class SplitScreenRenderer {
             var camera = _cameras[i];
             // You may need to set camera.Limits or attach a ViewportAdapter
             camera.Position = players[i].Origin.ToVector2();  // Assuming your Ship has a Vector2 Position2D
-            camera.Zoom = 1.0f + players[i]._zoom * 0.67f; // or whatever zoom level you want
+            camera.Zoom = 1.5f + players[i]._zoom * 1f; // or whatever zoom level you want
 
             if (Config.RotateWorld)
             {

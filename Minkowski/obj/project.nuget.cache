@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "A6W2kF9uxsc=",
+  "dgSpecHash": "71syEj6TmGg=",
   "success": true,
-  "projectFilePath": "/home/anikyte/Documents/Minkowski/Minkowski/Minkowski.csproj",
+  "projectFilePath": "/home/anikyte/Documents/ProjectMinkowski/Minkowski/Minkowski.csproj",
   "expectedPackageFiles": [
     "/home/anikyte/.nuget/packages/clipper2/1.5.3/clipper2.1.5.3.nupkg.sha512",
     "/home/anikyte/.nuget/packages/cyotek.drawing.bitmapfont/2.0.4/cyotek.drawing.bitmapfont.2.0.4.nupkg.sha512",
@@ -18,7 +18,7 @@
     "/home/anikyte/.nuget/packages/stbtruetypesharp/1.26.12/stbtruetypesharp.1.26.12.nupkg.sha512",
     "/home/anikyte/.nuget/packages/system.memory/4.5.3/system.memory.4.5.3.nupkg.sha512",
     "/home/anikyte/.nuget/packages/system.valuetuple/4.5.0/system.valuetuple.4.5.0.nupkg.sha512",
-    "/home/anikyte/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.3/microsoft.aspnetcore.app.ref.9.0.3.nupkg.sha512"
+    "/home/anikyte/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.2/microsoft.aspnetcore.app.ref.9.0.2.nupkg.sha512"
   ],
   "logs": []
 }

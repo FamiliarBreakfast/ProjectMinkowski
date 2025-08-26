@@ -73,8 +73,8 @@ public class ProjectMinowskiGame : Game
         graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Assets";
         IsMouseVisible = true;
-        graphics.PreferredBackBufferWidth = 800;
-        graphics.PreferredBackBufferHeight = 400;
+        graphics.PreferredBackBufferWidth = 1600;
+        graphics.PreferredBackBufferHeight = 900;
     }
     
     protected override void LoadContent()
@@ -87,7 +87,7 @@ public class ProjectMinowskiGame : Game
         };
         fontSystem = new FontSystem(config);
         fontSystem.AddFont(File.ReadAllBytes("Assets/SpaceMono.ttf"));
-        GameResources.DefaultFont = fontSystem.GetFont(18);  // 16 pt size
+        GameResources.DefaultFont = fontSystem.GetFont(24);  // 16 pt size
         
         GameResources.BasicEffect = new BasicEffect(GraphicsDevice) {
             VertexColorEnabled = true,
@@ -99,7 +99,7 @@ public class ProjectMinowskiGame : Game
 
         //WorldconeAnalyticalIntersectionTests.RunAll();
         
-        PlayerManager.InitializeLocalPlayers(4); // or 4
+        PlayerManager.InitializeLocalPlayers(2); // or 4
         
         spriteBatch = new SpriteBatch(GraphicsDevice);
         renderer = new SplitScreenRenderer(GraphicsDevice);

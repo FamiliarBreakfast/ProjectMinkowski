@@ -113,9 +113,10 @@ public static class CollisionManager
         }
     }
     
-    // public static void Collide(Ship a, Ship b)
-    // {
-    // }
+    public static void Collide(Ship a, Ship b)
+    {
+        
+    }
     
     public static void Collide(Ship ship, Mine mine)
     {
@@ -196,22 +197,24 @@ public static class CollisionManager
             if (distance > 3)
             {
                 force = Config.G * ((a.Mass * b.Mass) / (Math.Pow(distance, Config.F)));
+                double aAccel = Math.Min(-force / a.Mass, Math.Pow(Config.C, 0.5));
+                double bAccel = Math.Min(-force / b.Mass, Math.Pow(Config.C, 0.5));
+                //for a
+                Vector2 aVec = a.Origin.ToVector2() - b.Origin.ToVector2();
+                aVec.Normalize();
+                a.Acceleration = aVec * (float)aAccel;
+                //for b
+                Vector2 bVec = b.Origin.ToVector2() - a.Origin.ToVector2();
+                bVec.Normalize();
+                b.Acceleration = bVec * (float)bAccel;
             }
             else
             {
-                force = a.Mass * b.Mass * -10;
+                a.Velocity = -a.Velocity;
+                b.Velocity = -b.Velocity;
             }
 
-            double aAccel = Math.Min(-force / a.Mass, Math.Pow(Config.C, 0.5));
-            double bAccel = Math.Min(-force / b.Mass, Math.Pow(Config.C, 0.5));
-            //for a
-            Vector2 aVec = a.Origin.ToVector2() - b.Origin.ToVector2();
-            aVec.Normalize();
-            a.Acceleration = aVec * (float)aAccel;
-            //for b
-            Vector2 bVec = b.Origin.ToVector2() - a.Origin.ToVector2();
-            bVec.Normalize();
-            b.Acceleration = bVec * (float)bAccel;
+            
         }
     }
 }
