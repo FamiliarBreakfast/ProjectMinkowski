@@ -1,5 +1,5 @@
 using Clipper2Lib;
-using FontStashSharp;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
@@ -103,19 +103,6 @@ public class Ship : MotileEntity
         Frame.Velocity = Velocity;
         
         Worldline.AddEvent(this);
-    }
-    
-    public void DrawHud(SpriteBatch batch)
-    {
-        var speed = Velocity.Length();
-        var fraction = speed / Config.C;
-
-        string text = $"Player {Id}    Speed: {fraction:0.00}c    Health: {Health}";
-
-        var position = new Vector2(10, 10); // top-left of player's viewport
-        var font = GameResources.DefaultFont;
-
-        batch.DrawString(font, text, position, Color.White);
     }
 
     public void ApplyMovement(float dt, float forwardInput, float strafeInput, float rotateInput) {

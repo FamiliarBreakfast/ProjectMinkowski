@@ -193,7 +193,7 @@ public static class CollisionManager
         {
             double distance = Vector2.Distance(a.Origin.ToVector2(), b.Origin.ToVector2());
             //a=f/m
-            double force;
+            double force;/*
             if (distance > 3)
             {
                 force = Config.G * ((a.Mass * b.Mass) / (Math.Pow(distance, Config.F)));
@@ -212,9 +212,7 @@ public static class CollisionManager
             {
                 a.Velocity = -a.Velocity;
                 b.Velocity = -b.Velocity;
-            }
-
-            
+            }*/
         }
     }
 }

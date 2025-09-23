@@ -33,7 +33,7 @@ public static class Config
     /// where m is the other body's mass, r is distance, and F is the exponent.
     /// Larger G means stronger acceleration at all distances.
     /// </summary>
-    public const double G = 1;
+    public const double G = 0;
     /// <summary>
     /// Gravitational exponent, unitless.
     /// Controls how acceleration falls off with distance in the formula: a = G * (m1 * m2) / r^F.

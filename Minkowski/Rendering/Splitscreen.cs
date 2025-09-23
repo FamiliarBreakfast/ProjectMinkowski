@@ -1,4 +1,7 @@
 // ReSharper disable PossibleLossOfFraction
+
+using Minowski.Gameplay;
+
 namespace ProjectMinkowski.Rendering.SplitScreen;
 
 using Microsoft.Xna.Framework;
@@ -68,6 +71,8 @@ public class SplitScreenRenderer {
         foreach (var entity in EntityManager.Entities)
             entity.VertexDraw(graphics, effect, ship);
 
+        HUD.VertexDraw(batch, ship);
+
         graphics.BlendState = BlendState.AlphaBlend;
         
         foreach (EffectPass pass in effect.CurrentTechnique.Passes)
@@ -128,7 +133,7 @@ public class SplitScreenRenderer {
 
 
         batch.Begin();
-        ship.DrawHud(batch);
+        HUD.Draw(batch, ship);
         batch.End();
         batch.Begin();
     }

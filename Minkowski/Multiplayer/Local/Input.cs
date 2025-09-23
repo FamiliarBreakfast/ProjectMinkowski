@@ -42,7 +42,7 @@ public static class InputSystem
     private static Dictionary<string, Func<float>> KeyboardMap2 = new()
     {
         { "Parallel", () => KeyDown(Keys.I) - KeyDown(Keys.K) },
-        { "Perpendicular", () => KeyDown(Keys.J) - KeyDown(Keys.L) },
+        { "Perpendicular", () => KeyDown(Keys.L) - KeyDown(Keys.J) },
         { "Azimuth", () => KeyDown(Keys.U) - KeyDown(Keys.O) },
         { "Beam", () => KeyPressed(Keys.M) },
         { "Mine", () => KeyPressed(Keys.N) },
