@@ -10,12 +10,20 @@ namespace Minowski.Gameplay;
 
 public static class HUD
 {
+    private const int Range = 200;
+    private const int OrbitRange = 50;
+    
     public static PathD Polygon = new PathD
     {
         new PointD(6.66,0),
         new PointD(-2.22,3.33),
         new PointD(-2.22,-3.33)
     };
+
+    private static int AlphaAsymptote(float distance)
+    {
+        return 0;
+    }
     
     public static void Draw(SpriteBatch spriteBatch, Ship ship)
     {
@@ -34,22 +42,27 @@ public static class HUD
     {
         foreach (Ship target in PlayerManager.Ships)
         {
-            float distance = Vector2.DistanceSquared(ship.Position, target.Position);
-            if (distance > 5000)
+            if (target.Worldline.HasVisibleEvent(ship.Origin))
             {
-                Vector2 orbit = Vector2.Normalize(target.Position - ship.Position);
-                float angle = MathF.Atan2(orbit.Y, orbit.X);
+                Vector2 position =
+                    target.Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Position", interpolate: true);
+                float distance = Vector2.DistanceSquared(ship.Position, position);
+                if (distance > Math.Pow(Range, 2))
+                {
+                    Vector2 orbit = Vector2.Normalize(position - ship.Position);
+                    float angle = MathF.Atan2(orbit.Y, orbit.X);
 
-                float x = ship.Position.X + float.Cos(angle) * 30;
-                float y = ship.Position.Y + float.Sin(angle) * 30;
-                
-                var vertices = Transformations.ToVertexArray(
+                    float x = ship.Position.X + float.Cos(angle) * OrbitRange;
+                    float y = ship.Position.Y + float.Sin(angle) * OrbitRange;
+
+                    var vertices = Transformations.ToVertexArray(
                         Transformations.Translate(
-                            Transformations.Rotate(Polygon, angle), 
+                            Transformations.Rotate(Polygon, angle),
                             x, y),
-                    target.Color);
-                
-                ship.Shapes.Add(vertices);
+                        target.Color);
+
+                    ship.Shapes.Add(vertices);
+                }
             }
         }
     }
