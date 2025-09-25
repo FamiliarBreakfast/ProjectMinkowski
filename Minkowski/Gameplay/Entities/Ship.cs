@@ -53,6 +53,7 @@ public class Ship : MotileEntity
         {
             new PointD(20,0),
             new PointD(-6.66,10),
+            new PointD(0,0),
             new PointD(-6.66,-10)
         };
     }
