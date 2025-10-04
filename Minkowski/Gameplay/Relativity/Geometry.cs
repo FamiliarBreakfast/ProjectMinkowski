@@ -1,9 +1,9 @@
-using Microsoft.Xna.Framework;
 using Clipper2Lib;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ProjectMinkowski.Rendering;
+using Minkowski.Gameplay.Entities;
 
-namespace ProjectMinkowski.Relativity {
+namespace Minkowski.Gameplay.Relativity {
 
     public class Line
     {

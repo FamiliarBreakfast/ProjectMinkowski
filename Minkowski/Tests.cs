@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
-using ProjectMinkowski.Relativity;
-using System;
-using ProjectMinkowski;
+using Minkowski.Gameplay.Relativity;
+
+namespace Minkowski;
 
 public static class WorldconeAnalyticalIntersectionTests {
     public static void RunAll() {

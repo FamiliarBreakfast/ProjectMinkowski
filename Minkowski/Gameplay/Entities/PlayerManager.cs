@@ -1,7 +1,7 @@
-using Microsoft.Xna.Framework;
-using ProjectMinkowski;
-using ProjectMinkowski.Entities;
-using ProjectMinkowski.Relativity;
+using Minkowski.Gameplay.Entities;
+using Minkowski.Gameplay.Relativity;
+
+namespace Minkowski.Gameplay;
 
 public static class PlayerManager {
     public static List<Ship> Ships = new();

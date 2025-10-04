@@ -1,8 +1,7 @@
 using Clipper2Lib;
 using Microsoft.Xna.Framework;
-using ProjectMinkowski.Rendering;
 
-namespace ProjectMinkowski.Relativity;
+namespace Minkowski.Gameplay.Relativity;
 
 //How does any of this work? Truthfully, I have no idea. Black magic and dark science.
 

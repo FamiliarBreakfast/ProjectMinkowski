@@ -1,9 +1,9 @@
 using System.Reflection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using ProjectMinkowski.Entities;
+using Minkowski.Gameplay.Entities;
 
-namespace ProjectMinkowski.Multiplayer.Local;
+namespace Minkowski.Multiplayer.Local;
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method)]
 public class ControlAttribute : Attribute

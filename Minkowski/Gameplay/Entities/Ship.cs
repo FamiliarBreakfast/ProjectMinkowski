@@ -1,16 +1,17 @@
 using Clipper2Lib;
-
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
-using ProjectMinkowski.Multiplayer.Local;
-using ProjectMinkowski.Relativity;
-using ProjectMinkowski.Rendering;
+using Minkowski.Gameplay.Entities.Particles;
+using Minkowski.Gameplay.Relativity;
+using Minkowski.Multiplayer.Local;
+using Minkowski.Rendering;
 
-namespace ProjectMinkowski.Entities;
+namespace Minkowski.Gameplay.Entities;
 
 public class Ship : MotileEntity
 {
+    public PlayerView View;
+    
     public int Id;
     
     public List<VertexPositionColor[]> Shapes = new();
@@ -20,8 +21,6 @@ public class Ship : MotileEntity
     public FrameOfReference Frame;
 
     public float RotationSpeed => _azimuth * RotationPower;
-    // [Worldline] public float Rotation;
-    // [Worldline] public Vector2 Velocity;
     [Worldline] public int Health = 100;
     [Worldline] public byte Flags = 0;
 
@@ -56,6 +55,8 @@ public class Ship : MotileEntity
             new PointD(0,0),
             new PointD(-6.66,-10)
         };
+
+        View = new PlayerView(this);
     }
 
     [Control("Beam")]

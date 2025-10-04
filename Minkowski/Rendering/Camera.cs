@@ -1,6 +1,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+namespace Minkowski.Rendering;
+
 public class RotatableCamera2D
 {
     public Vector2 Position { get; set; } = Vector2.Zero;

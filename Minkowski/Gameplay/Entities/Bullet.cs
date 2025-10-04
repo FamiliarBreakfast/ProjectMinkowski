@@ -1,9 +1,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ProjectMinkowski.Relativity;
-using ProjectMinkowski.Rendering;
+using Minkowski.Gameplay.Relativity;
 
-namespace ProjectMinkowski.Entities;
+namespace Minkowski.Gameplay.Entities;
 
 public class Bullet : TracerEntity
 {

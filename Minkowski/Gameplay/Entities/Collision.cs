@@ -1,11 +1,8 @@
 using System.Reflection;
 using Clipper2Lib;
 using Microsoft.Xna.Framework;
-using ProjectMinkowski.Entities;
-using ProjectMinkowski.Relativity;
-using ProjectMinkowski.Rendering;
 
-namespace ProjectMinkowski.Gameplay;
+namespace Minkowski.Gameplay.Entities;
 
 public delegate void CollisionHandler(object a, object b);
 

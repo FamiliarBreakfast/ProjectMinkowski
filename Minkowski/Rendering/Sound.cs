@@ -1,7 +1,6 @@
 using Microsoft.Xna.Framework.Audio;
-using System;
-using Microsoft.Xna.Framework;
-using ProjectMinkowski;
+
+namespace Minkowski.Rendering;
 
 public static class Sound
 {
@@ -77,4 +76,3 @@ public class FunctionSynth
         _sample = 0;
     }
 }
-

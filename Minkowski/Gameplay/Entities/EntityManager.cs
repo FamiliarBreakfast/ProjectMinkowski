@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-
-namespace ProjectMinkowski.Rendering;
+namespace Minkowski.Gameplay.Entities;
 
 public static class EntityManager {
     public static List<RenderableEntity> Entities = new();

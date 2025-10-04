@@ -2,11 +2,10 @@ using Clipper2Lib;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ProjectMinkowski;
-using ProjectMinkowski.Entities;
-using ProjectMinkowski.Relativity;
+using Minkowski.Gameplay.Entities;
+using Minkowski.Gameplay.Relativity;
 
-namespace Minowski.Gameplay;
+namespace Minkowski.Gameplay;
 
 public static class HUD
 {

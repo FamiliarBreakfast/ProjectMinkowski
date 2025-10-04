@@ -1,22 +1,20 @@
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-
 using FontStashSharp;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
-using ProjectMinkowski.Entities;
-using ProjectMinkowski.Gameplay;
-using ProjectMinkowski.Multiplayer.Local;
-using ProjectMinkowski.Rendering;
-using ProjectMinkowski.Rendering.SplitScreen;
+using Microsoft.Xna.Framework.Graphics;
+using Minkowski.Gameplay;
+using Minkowski.Gameplay.Entities;
+using Minkowski.Multiplayer.Local;
+using Minkowski.Rendering;
 
-namespace ProjectMinkowski;
+namespace Minkowski;
 
 public static class Program
 {
     [STAThread]
     static void Main()
     {
-        using var game = new ProjectMinowskiGame();
+        using var game = new ProjectMinkowskiGame();
         game.Run();
     }
 }
@@ -53,6 +51,8 @@ public static class Config
     public const bool Sound = false; //doesnt really work in splitscreen does it?
     public const int sampleRate = 44100;
     public const int bufferSize = 2048;
+
+    public static ProjectMinkowskiGame Game;
 }
 
 public static class GameResources {
@@ -60,21 +60,21 @@ public static class GameResources {
     public static BasicEffect? BasicEffect { get; set; }
 }
 
-public class ProjectMinowskiGame : Game
+public class ProjectMinkowskiGame : Game
 {
     //GRAPHICS
     private FontSystem fontSystem;
     private SpriteBatch spriteBatch;
     private GraphicsDeviceManager graphics;
-    private SplitScreenRenderer renderer;
     private DynamicSoundEffectInstance synthInstance;
 
-    public ProjectMinowskiGame() {
+    public ProjectMinkowskiGame() {
         graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Assets";
         IsMouseVisible = true;
         graphics.PreferredBackBufferWidth = 1600;
         graphics.PreferredBackBufferHeight = 900;
+        Config.Game = this;
     }
     
     protected override void LoadContent()
@@ -102,7 +102,6 @@ public class ProjectMinowskiGame : Game
         PlayerManager.InitializeLocalPlayers(2); // or 4
         
         spriteBatch = new SpriteBatch(GraphicsDevice);
-        renderer = new SplitScreenRenderer(GraphicsDevice);
 
         if (Config.Sound)
         {
@@ -142,7 +141,7 @@ public class ProjectMinowskiGame : Game
     {
         GraphicsDevice.Clear(Color.Black);
         spriteBatch.Begin();
-        renderer.RenderAllPlayers(spriteBatch);
+        RenderManager.Render(spriteBatch);
         spriteBatch.End();
     }
 }

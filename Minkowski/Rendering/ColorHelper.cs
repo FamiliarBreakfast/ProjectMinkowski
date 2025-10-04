@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
-using ProjectMinkowski;
-using ProjectMinkowski.Relativity;
+using Minkowski.Gameplay.Relativity;
+
+namespace Minkowski.Rendering;
 
 public static class ColorHelper
 {

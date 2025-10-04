@@ -1,10 +1,10 @@
 using Clipper2Lib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ProjectMinkowski.Relativity;
-using ProjectMinkowski.Rendering;
+using Minkowski.Gameplay.Relativity;
+using Minkowski.Rendering;
 
-namespace ProjectMinkowski.Entities;
+namespace Minkowski.Gameplay.Entities.Particles;
 
 public class Particle : WorldlineEntity
 {

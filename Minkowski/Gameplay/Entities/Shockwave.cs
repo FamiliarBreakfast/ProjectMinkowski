@@ -1,9 +1,7 @@
-using Clipper2Lib;
 using Microsoft.Xna.Framework.Graphics;
-using ProjectMinkowski.Relativity;
-using ProjectMinkowski.Rendering;
+using Minkowski.Gameplay.Relativity;
 
-namespace ProjectMinkowski.Entities;
+namespace Minkowski.Gameplay.Entities;
 
 public class Shockwave : WorldconeEntity
 {

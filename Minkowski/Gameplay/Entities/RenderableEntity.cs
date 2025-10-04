@@ -1,13 +1,10 @@
 using Clipper2Lib;
-using ProjectMinkowski.Entities;
-using ProjectMinkowski.Relativity;
-using System; // for Type
-using ProjectMinkowski.Rendering;
-
-namespace ProjectMinkowski.Rendering; //todo: this should be elsewhere
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Minkowski.Gameplay.Relativity;
+// for Type
+
+namespace Minkowski.Gameplay.Entities; //todo: this should be elsewhere
 
 public abstract class RenderableEntity {
     public RenderableEntity() {
