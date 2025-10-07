@@ -65,11 +65,11 @@ public class Asteroid : WorldlineEntity
             
             var vertices =
                 Transformations.ToVertexArray(
-                    FrameOfReference.ApplyLengthContractionInFrame(
+                    FrameOfReference.ApplyTerrelPenroseEffect(
                         Transformations.Translate(
                             Transformations.Rotate(Polygon, rotation),
                             position.X, position.Y),
-                        position, relativeVelocity),
+                        position, relativeVelocity, ship.Position),
                     color);
 
             ship.Shapes.Add(vertices);

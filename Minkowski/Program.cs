@@ -4,8 +4,10 @@ using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Minkowski.Gameplay;
 using Minkowski.Gameplay.Entities;
+using Minkowski.Gameplay.Relativity;
 using Minkowski.Multiplayer.Local;
 using Minkowski.Rendering;
+using Minowski.Gameplay.Entities;
 
 namespace Minkowski;
 
@@ -24,7 +26,7 @@ public static class Config
     /// <summary>
     /// Number of players. Currently only 2 or 4 supported.
     /// </summary>
-    public const int Players = 2;
+    public const int Players = 4;
     /// <summary>
     /// The speed of light, in distance per time unit (e.g. 10 means light moves 10 units/sec).
     /// </summary>
@@ -107,6 +109,8 @@ public class ProjectMinkowskiGame : Game
         
         spriteBatch = new SpriteBatch(GraphicsDevice);
 
+        new Planet(1000, 500, new MinkowskiVector(0, 1100, 0));
+        
         if (Config.Sound)
         {
             synthInstance = new DynamicSoundEffectInstance(Config.sampleRate, AudioChannels.Mono);

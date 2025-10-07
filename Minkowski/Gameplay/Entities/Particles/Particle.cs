@@ -78,11 +78,11 @@ public class Particle : WorldlineEntity
 
             var vertices =
                 Transformations.ToVertexArray(
-                    FrameOfReference.ApplyLengthContractionInFrame(
+                    FrameOfReference.ApplyTerrelPenroseEffect(
                         Transformations.Translate(
                             Transformations.Rotate(Polygon, rotation),
                             position.X, position.Y),
-                        position, relativeVelocity),
+                        position, relativeVelocity, ship.Position),
                     Color.Lerp(color, Color.Transparent, t));
 
             ship.Shapes.Add(vertices);

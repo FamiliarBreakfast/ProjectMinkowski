@@ -190,51 +190,56 @@ public class FrameOfReference
         return vPrimeParallel + vPrimePerp;
     }
     
-    public static PathD ApplyLengthContractionInFrame(
+    public static PathD ApplyTerrelPenroseEffect(
         PathD path,
-        Vector2 centerV,
-        Vector2 relativeVelocity
+        Vector2 origin,          // object rest origin (in observer frame)
+        Vector2 velocity,        // velocity in observer frame
+        Vector2 observerPos      // position of observer in same frame
     )
     {
-        // Step 1: Transform object's global velocity to observer frame
-        //Vector2 relativeVelocity = objectVelocityGlobal - observerFrame.Velocity;
-        
+        double c = Config.C;
+        double vx = velocity.X, vy = velocity.Y;
+        double v2 = vx * vx + vy * vy;
 
-        float speedSq = relativeVelocity.LengthSquared();
-        float c = (float)Config.C;
+        if (v2 < 1e-12 || v2 >= c * c)
+            return new PathD(path);
 
-        if (speedSq < 1e-10 || speedSq >= c * c)
-            return new PathD(path); // Just copy the original path
+        PathD apparent = new(path.Count);
 
-        float gamma = 1f / MathF.Sqrt(1f - speedSq / (c * c));
-        float contraction = 1f / gamma;
-
-        Vector2 direction = Vector2.Normalize(relativeVelocity);
-
-        PathD contracted = new PathD(path.Count);
-
-        for (int i = 0; i < path.Count; i++)
+        foreach (var p in path)
         {
-            // Convert point to Vector2 for math
-            Vector2 v = new Vector2((float)path[i].x, (float)path[i].y);
+            double px = p.x;
+            double py = p.y;
 
-            Vector2 relative = v - centerV;
+            // position at t = 0 (object's current position)
+            double dx = px - observerPos.X;
+            double dy = py - observerPos.Y;
 
-            // Project onto direction of motion
-            float parallelMag = Vector2.Dot(relative, direction);
-            Vector2 parallel = direction * parallelMag;
-            Vector2 orthogonal = relative - parallel;
+            // Solve for emission time t_emit < 0
+            // |(p + v * t_emit) - observer| = -c * t_emit
+            // Square both sides:
+            // (dx + vx*t)^2 + (dy + vy*t)^2 = c^2 * t^2
+            // Expand and rearrange to quadratic in t:
+            double A = v2 - c * c;
+            double B = 2 * (dx * vx + dy * vy);
+            double C = dx * dx + dy * dy;
 
-            // Contract the parallel component
-            Vector2 contractedRelative = orthogonal + parallel * contraction;
-            Vector2 contractedV = centerV + contractedRelative;
+            // Solve A t^2 + B t + C = 0
+            double discriminant = B * B - 4 * A * C;
+            if (discriminant < 0)
+                discriminant = 0;
 
-            contracted.Add(new PointD(contractedV.X, contractedV.Y));
+            double t_emit = (-B - Math.Sqrt(discriminant)) / (2 * A); // past light cone
+
+            // apparent position = where the vertex was when light left
+            double xApp = px + vx * t_emit;
+            double yApp = py + vy * t_emit;
+
+            apparent.Add(new PointD(xApp, yApp));
         }
 
-        return contracted;
+        return apparent;
     }
-
 
     
     public override string ToString() =>

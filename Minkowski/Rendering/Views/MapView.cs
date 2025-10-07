@@ -48,12 +48,13 @@ public static class MapView
 				new VertexPositionColor(new Vector3(-ProjectionArea.Width/2+1, -ProjectionArea.Height/2+1, 0), //top left
 					borderColor),
 			};
-			graphics.DrawUserPrimitives(
-				PrimitiveType.LineStrip,
-				border,
-				0,
-				border.Length - 1
-			);
+			//todo: finish minimap view
+			// graphics.DrawUserPrimitives(
+			// 	PrimitiveType.LineStrip,
+			// 	border,
+			// 	0,
+			// 	border.Length - 1
+			// );
 		}
 		batch.Begin();
 		graphics.Viewport = originalViewport;

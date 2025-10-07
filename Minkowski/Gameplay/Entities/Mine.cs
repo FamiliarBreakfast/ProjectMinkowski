@@ -111,11 +111,11 @@ public class Mine : MotileEntity
                 
                 var vertices =
                     Transformations.ToVertexArray(
-                        FrameOfReference.ApplyLengthContractionInFrame(
+                        FrameOfReference.ApplyTerrelPenroseEffect(
                             Transformations.Translate(
                                 Transformations.Rotate(Polygon, rotation),
                                 position.X, position.Y),
-                            position, relativeVelocity),
+                            position, relativeVelocity, ship.Position),
                         Color.Lerp(color, Color.White, t));
 
                 ship.Shapes.Add(vertices);
@@ -136,11 +136,11 @@ public class Mine : MotileEntity
                 
                 var vertices =
                     Transformations.ToVertexArray(
-                        FrameOfReference.ApplyLengthContractionInFrame(
+                        FrameOfReference.ApplyTerrelPenroseEffect(
                             Transformations.Translate(
                                 Transformations.Scale(Polygon, Shockwave.Radius / 10f),
                                 position.X, position.Y),
-                            position, relativeVelocity),
+                            position, relativeVelocity, ship.Position),
                         Color.Lerp(Color.Transparent, color, t));
 
                 ship.Shapes.Add(vertices);
