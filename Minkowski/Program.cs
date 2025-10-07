@@ -99,7 +99,7 @@ public class ProjectMinkowskiGame : Game
 
         //WorldconeAnalyticalIntersectionTests.RunAll();
         
-        PlayerManager.InitializeLocalPlayers(2); // or 4
+        PlayerManager.InitializeLocalPlayers(4); // or 4
         
         spriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -141,7 +141,11 @@ public class ProjectMinkowskiGame : Game
     {
         GraphicsDevice.Clear(Color.Black);
         spriteBatch.Begin();
-        RenderManager.Render(spriteBatch);
+        foreach (Ship ship in PlayerManager.Ships)
+        {
+            ship.View.Render(spriteBatch);
+        }
+        MapView.Render(spriteBatch);
         spriteBatch.End();
     }
 }

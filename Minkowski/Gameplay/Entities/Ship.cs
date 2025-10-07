@@ -28,9 +28,9 @@ public class Ship : MotileEntity
     
     private FunctionSynth _synth;
     
-    public const float ThrustPower = 50f;
-    public const float StrafePower = 50f;
-    public const float RotationPower = 2f;
+    public float ThrustPower = 50f;
+    public float StrafePower = 50f;
+    public float RotationPower = 2f;
 
     public int ParticleTimer = 0;
     
@@ -108,22 +108,17 @@ public class Ship : MotileEntity
     }
 
     public void ApplyMovement(float dt, float forwardInput, float strafeInput, float rotateInput) {
-        Rotation += rotateInput * RotationPower * dt;
+        Rotation += rotateInput * RotationPower * dt / (_zoom + 1);
         
         Vector2 forward = new((float)Math.Cos(Rotation), (float)Math.Sin(Rotation));
         Vector2 right = new(-forward.Y, forward.X); // perpendicular
         
         // Proper acceleration in ship's rest frame
         Acceleration += 
-            forward * forwardInput * ThrustPower +
-            right * strafeInput * StrafePower;
+            forward * forwardInput * ThrustPower / (_zoom * 3 + 1) +
+            right * strafeInput * StrafePower / (_zoom * 3 + 1);
         
-        // // Apply relativistic correction
-        // float gamma = FrameOfReference.Gamma(Velocity);
-        // Vector2 coordAccel = properAccel / (gamma * gamma * gamma);
-        //
-        // Velocity += coordAccel * dt;
-        
+        // Ensure velocity follows gamma curve
         float gamma = Gamma(Velocity);
         Vector2 coordAccel = Acceleration / (gamma * gamma * gamma);
 

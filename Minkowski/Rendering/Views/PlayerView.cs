@@ -10,11 +10,11 @@ public class PlayerView
 	public Ship Ship;
 	public Viewport Viewport;
 	public RotatableCamera2D Camera;
-	
+	private Rectangle ProjectionArea = new Rectangle(-1000, -1000, 2000, 2000);
 	public PlayerView(Ship ship)
 	{
 		Ship = ship;
-		Viewport = new Viewport(RenderManager.GetHardcodedViewport(ship.Id, Config.Game.GraphicsDevice));
+		Viewport = new Viewport(ViewRectangle(ship.Id));
 		Camera = new RotatableCamera2D(Config.Game.GraphicsDevice);
 	}
 	
@@ -25,7 +25,7 @@ public class PlayerView
 		
 		var originalViewport = graphics.Viewport;
 		
-		Viewport.Bounds = RenderManager.GetHardcodedViewport(Ship.Id, Config.Game.GraphicsDevice);
+		Viewport.Bounds = ViewRectangle(Ship.Id);
 		
 		graphics.Viewport = Viewport;
 		
@@ -43,9 +43,10 @@ public class PlayerView
 		
 		//set projection matrix
 		//transforms game coordinates to screen coordinates
+		
 		effect.Projection = Matrix.CreateOrthographicOffCenter(
-			-graphics.Viewport.Width / 2f, graphics.Viewport.Width / 2f,   // left, right
-			graphics.Viewport.Height / 2f, -graphics.Viewport.Height / 2f, // top, bottom
+			-ProjectionArea.Width / 2f, ProjectionArea.Width / 2f,
+			ProjectionArea.Height / 2f, -ProjectionArea.Height / 2f,
 			0, 1
 		);
 		effect.View = Camera.GetViewMatrix();
@@ -107,14 +108,16 @@ public class PlayerView
             Color borderColor = Color.White;
             VertexPositionColor[] border = new VertexPositionColor[]
             {
-                new VertexPositionColor(new Vector3(-graphics.Viewport.Width/2+1, -graphics.Viewport.Height/2-1, 0), //top left
-                    borderColor),
-                new VertexPositionColor(new Vector3(-graphics.Viewport.Width/2+1, graphics.Viewport.Height/2-1, 0), //bottom left
-                    borderColor),
-                new VertexPositionColor(new Vector3(graphics.Viewport.Width/2, graphics.Viewport.Height/2-1, 0), //bottom right
-                    borderColor),
-                new VertexPositionColor(new Vector3(graphics.Viewport.Width/2, -graphics.Viewport.Height/2-1, 0), //top right
-                    borderColor)
+	            new VertexPositionColor(new Vector3(-ProjectionArea.Width/2+1, -ProjectionArea.Height/2-1, 0), //top left
+		            borderColor),
+	            new VertexPositionColor(new Vector3(-ProjectionArea.Width/2+1,ProjectionArea.Height/2-1, 0), //bottom left
+		            borderColor),
+	            new VertexPositionColor(new Vector3(ProjectionArea.Width/2, ProjectionArea.Height/2-1, 0), //bottom right
+		            borderColor),
+	            new VertexPositionColor(new Vector3(ProjectionArea.Width/2, -ProjectionArea.Height/2-1, 0), //top right
+		            borderColor),
+	            new VertexPositionColor(new Vector3(-ProjectionArea.Width/2+1, -ProjectionArea.Height/2-1, 0), //top left
+		            borderColor),
             };
             
             graphics.DrawUserPrimitives(
@@ -133,5 +136,34 @@ public class PlayerView
         batch.End();
         batch.Begin();
         graphics.Viewport = originalViewport;
+	}
+	
+	/// <summary>
+	/// Returns the rectangle of the viewport for the given player index
+	/// </summary>
+	/// <param name="index">Player index</param>
+	/// <returns></returns>
+	// TODO: Dynamic fractioning of the screen instead of a hardcoded divisioning
+	public static Rectangle ViewRectangle(int index)
+	{
+		int count = PlayerManager.Count;
+		int w = Config.Game.GraphicsDevice.PresentationParameters.BackBufferWidth;
+		int h = Config.Game.GraphicsDevice.PresentationParameters.BackBufferHeight;
+
+		return count switch {
+			2 => index == 0
+				? new Rectangle(0, 0, w / 2, h)
+				: new Rectangle(w / 2, 0, w / 2, h),
+
+			4 => index switch {
+				0 => new Rectangle(0, 0, w / 2, h / 2),         // Top-left
+				1 => new Rectangle(w / 2, 0, w / 2, h / 2),      // Top-right
+				2 => new Rectangle(0, h / 2, w / 2, h / 2),      // Bottom-left
+				3 => new Rectangle(w / 2, h / 2, w / 2, h / 2),  // Bottom-right
+				_ => new Rectangle(0, 0, w, h),
+			},
+
+			_ => new Rectangle(0, 0, w, h)
+		};
 	}
 }
