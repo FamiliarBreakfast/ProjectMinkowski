@@ -11,7 +11,7 @@ No longer are you an omniscient oracle, your information, and perception, of you
 ## CURRENT FEATURES AND TODO:
 ### Special Relativity (Complete)
 
-Special relativity is the principal that light has a fixed finite speed regardless of your frame of reference. This results in some odd behaivour, which can seem unintuitive at first.  
+Special relativity is the principal that light has a fixed finite speed regardless of your frame of reference. This results in some odd behaviour, which can seem unintuitive at first.  
 Project Minkowski, as the name implies, uses a Minkowski space system to model special relativity. Events exist 'absolutely' in Minkowski space, that is, frame-invarient.  
 Each simulation tick, the game computes for each player what events they can see in their own frame of reference. While an event is appended to Minkowski space immedietly, a distant player must wait until the light reaches them before they can see it happen.  
 This is done by computing `distance to event in 3-space * speed of light` and comparing this to `time since event`. If it's less, the player can't see it yet. When it's equal, the player sees the event.  
@@ -19,7 +19,7 @@ This approach avoids computationally expensive Lorentz transformations as well a
 ### Effects of Special Relativity
 
 - Time Dilation, an effect where observers at different velocities experience time slower, relative to eachother, naturally arises from the Minkowski space implmentation. However, due to the architechture, adding a ship clock to show effects like the Twin Paradox is not currently planned.  
-- Lorentz Contraction, an effect where objects appear contraction along their axis of motion, is implemented manually for objects. As Tessel Rotation has no analog in 2+1D, it is considered out of scope.  
+- Lorentz Contraction/Terrel-Penrose Effect, where objects appear to contract and rotate in order to preserve causal interactions under time dilation.
 - Doppler Effect, an effect where colors shift redder or bluer depending on velocity difference, is not currently implemented properly. As this is a purely visual effect, I am considering SR feature complete.   
 ### General Relativity (In Progress)
 
