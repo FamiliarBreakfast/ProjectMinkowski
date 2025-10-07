@@ -13,12 +13,12 @@ No longer are you an omniscient oracle, your information, and perception, of you
 
 Special relativity is the principal that light has a fixed finite speed regardless of your frame of reference. This results in some odd behaviour, which can seem unintuitive at first.  
 Project Minkowski, as the name implies, uses a Minkowski space system to model special relativity. Events exist 'absolutely' in Minkowski space, that is, frame-invarient.  
-Each simulation tick, the game computes for each player what events they can see in their own frame of reference. While an event is appended to Minkowski space immedietly, a distant player must wait until the light reaches them before they can see it happen.  
+Each simulation tick, the game computes for each player what events they can see in their own frame of reference. While an event is appended to Minkowski space immediately, a distant player must wait until the light reaches them before they can see it happen.  
 This is done by computing `distance to event in 3-space * speed of light` and comparing this to `time since event`. If it's less, the player can't see it yet. When it's equal, the player sees the event.  
 This approach avoids computationally expensive Lorentz transformations as well as simplifying the code. Since all of this is computed in Minkowski space, we don't need to take velocity into account here.  
 ### Effects of Special Relativity
 
-- Time Dilation, an effect where observers at different velocities experience time slower, relative to eachother, naturally arises from the Minkowski space implmentation. However, due to the architechture, adding a ship clock to show effects like the Twin Paradox is not currently planned.  
+- Time Dilation, an effect where observers at different velocities experience time slower, relative to eachother, naturally arises from the Minkowski space implementation. However, due to the architechture, adding a ship clock to show effects like the Twin Paradox is not currently planned.  
 - Lorentz Contraction/Terrel-Penrose Effect, where objects appear to contract and rotate in order to preserve causal interactions under time dilation.
 - Doppler Effect, an effect where colors shift redder or bluer depending on velocity difference, is not currently implemented properly. As this is a purely visual effect, I am considering SR feature complete.   
 ### General Relativity (In Progress)
