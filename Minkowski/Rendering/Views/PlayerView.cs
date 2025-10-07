@@ -10,7 +10,8 @@ public class PlayerView
 	public Ship Ship;
 	public Viewport Viewport;
 	public RotatableCamera2D Camera;
-	private Rectangle ProjectionArea = new Rectangle(-1000, -1000, 2000, 2000);
+	private Rectangle ProjectionArea => Config.Players == 2 ? new Rectangle(-1000, -1000, 2000, 2000) : new Rectangle(-1000, -1000, 2000, 1000);
+	
 	public PlayerView(Ship ship)
 	{
 		Ship = ship;
@@ -108,15 +109,15 @@ public class PlayerView
             Color borderColor = Color.White;
             VertexPositionColor[] border = new VertexPositionColor[]
             {
-	            new VertexPositionColor(new Vector3(-ProjectionArea.Width/2+1, -ProjectionArea.Height/2-1, 0), //top left
+	            new VertexPositionColor(new Vector3(-ProjectionArea.Width/2+1, -ProjectionArea.Height/2+1, 0), //top left
 		            borderColor),
 	            new VertexPositionColor(new Vector3(-ProjectionArea.Width/2+1,ProjectionArea.Height/2-1, 0), //bottom left
 		            borderColor),
 	            new VertexPositionColor(new Vector3(ProjectionArea.Width/2, ProjectionArea.Height/2-1, 0), //bottom right
 		            borderColor),
-	            new VertexPositionColor(new Vector3(ProjectionArea.Width/2, -ProjectionArea.Height/2-1, 0), //top right
+	            new VertexPositionColor(new Vector3(ProjectionArea.Width/2, -ProjectionArea.Height/2+1, 0), //top right
 		            borderColor),
-	            new VertexPositionColor(new Vector3(-ProjectionArea.Width/2+1, -ProjectionArea.Height/2-1, 0), //top left
+	            new VertexPositionColor(new Vector3(-ProjectionArea.Width/2+1, -ProjectionArea.Height/2+1, 0), //top left
 		            borderColor),
             };
             

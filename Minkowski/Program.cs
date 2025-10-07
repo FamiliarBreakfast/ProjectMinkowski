@@ -22,6 +22,10 @@ public static class Program
 public static class Config
 {
     /// <summary>
+    /// Number of players. Currently only 2 or 4 supported.
+    /// </summary>
+    public const int Players = 2;
+    /// <summary>
     /// The speed of light, in distance per time unit (e.g. 10 means light moves 10 units/sec).
     /// </summary>
     public const int C = 100;
@@ -99,7 +103,7 @@ public class ProjectMinkowskiGame : Game
 
         //WorldconeAnalyticalIntersectionTests.RunAll();
         
-        PlayerManager.InitializeLocalPlayers(4); // or 4
+        PlayerManager.InitializeLocalPlayers(Config.Players); // or 4
         
         spriteBatch = new SpriteBatch(GraphicsDevice);
 

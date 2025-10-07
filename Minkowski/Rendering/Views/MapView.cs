@@ -37,18 +37,17 @@ public static class MapView
 			Color borderColor = Color.White;
 			VertexPositionColor[] border = new VertexPositionColor[]
 			{
-				new VertexPositionColor(new Vector3(-ProjectionArea.Width/2+1, -ProjectionArea.Height/2-1, 0), //top left
+				new VertexPositionColor(new Vector3(-ProjectionArea.Width/2+1, -ProjectionArea.Height/2+1, 0), //top left
 					borderColor),
 				new VertexPositionColor(new Vector3(-ProjectionArea.Width/2+1,ProjectionArea.Height/2-1, 0), //bottom left
 					borderColor),
 				new VertexPositionColor(new Vector3(ProjectionArea.Width/2, ProjectionArea.Height/2-1, 0), //bottom right
 					borderColor),
-				new VertexPositionColor(new Vector3(ProjectionArea.Width/2, -ProjectionArea.Height/2-1, 0), //top right
+				new VertexPositionColor(new Vector3(ProjectionArea.Width/2, -ProjectionArea.Height/2+1, 0), //top right
 					borderColor),
-				new VertexPositionColor(new Vector3(-ProjectionArea.Width/2+1, -ProjectionArea.Height/2-1, 0), //top left
-					borderColor)
+				new VertexPositionColor(new Vector3(-ProjectionArea.Width/2+1, -ProjectionArea.Height/2+1, 0), //top left
+					borderColor),
 			};
-            
 			graphics.DrawUserPrimitives(
 				PrimitiveType.LineStrip,
 				border,
@@ -65,6 +64,12 @@ public static class MapView
 		int w = Config.Game.GraphicsDevice.PresentationParameters.BackBufferWidth;
 		int h = Config.Game.GraphicsDevice.PresentationParameters.BackBufferHeight;
 
-		return new Rectangle(w / 5 * 2, h / 5 * 2, w / 5, h / 5);
+		int squareSize = (int)(h * 0.25);
+		return new Rectangle(
+			(w - squareSize) / 2,  // x: center horizontally
+			(h - squareSize) / 2,  // y: center vertically
+			squareSize,             // width
+			squareSize              // height
+		);
 	}
 }

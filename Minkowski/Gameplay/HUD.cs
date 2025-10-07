@@ -31,7 +31,7 @@ public static class HUD
 
         var font = GameResources.DefaultFont;
         spriteBatch.DrawString(font, $"UNK-{ship.Id}    Velocity: {speed / Config.C:F3}c    Gamma: {MotileEntity.Gamma(ship.Velocity):F2}", new Vector2(10, 12), Color.White);
-        spriteBatch.DrawString(font, $"", new Vector2(10, 22), Color.White);
+        spriteBatch.DrawString(font, $"", new Vector2(12, 22), Color.White);
 
         int i = 1;
         
@@ -45,7 +45,7 @@ public static class HUD
                 
                 float distance = Vector2.Distance(ship.Position, position);
                 
-                spriteBatch.DrawString(font, $"UNK-{target.Id}    Distance: {distance / Config.C:F2}ls", new Vector2(10, 18*i+12), target.Color);
+                spriteBatch.DrawString(font, $"UNK-{target.Id}    Distance: {distance / Config.C:F2}ls", new Vector2(12, 18*i+12), target.Color);
                 i++;
             }
         }
