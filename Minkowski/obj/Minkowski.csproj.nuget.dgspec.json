@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/anikyte/Documents/Minkowski/Minkowski/Minkowski.csproj": {}
+    "/home/anikyte/Documents/ProjectMinkowski/Minkowski/Minkowski.csproj": {}
   },
   "projects": {
-    "/home/anikyte/Documents/Minkowski/Minkowski/Minkowski.csproj": {
+    "/home/anikyte/Documents/ProjectMinkowski/Minkowski/Minkowski.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/anikyte/Documents/Minkowski/Minkowski/Minkowski.csproj",
+        "projectUniqueName": "/home/anikyte/Documents/ProjectMinkowski/Minkowski/Minkowski.csproj",
         "projectName": "Minkowski",
-        "projectPath": "/home/anikyte/Documents/Minkowski/Minkowski/Minkowski.csproj",
+        "projectPath": "/home/anikyte/Documents/ProjectMinkowski/Minkowski/Minkowski.csproj",
         "packagesPath": "/home/anikyte/.nuget/packages/",
-        "outputPath": "/home/anikyte/Documents/Minkowski/Minkowski/obj/",
+        "outputPath": "/home/anikyte/Documents/ProjectMinkowski/Minkowski/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/anikyte/.nuget/NuGet/NuGet.Config"
@@ -75,7 +75,7 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[9.0.3, 9.0.3]"
+              "version": "[9.0.2, 9.0.2]"
             }
           ],
           "frameworkReferences": {
@@ -83,7 +83,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.104/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.103/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

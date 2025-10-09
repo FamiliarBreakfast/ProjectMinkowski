@@ -20,6 +20,9 @@ public class Planet : MotileEntity
 		Origin = origin;
 
 		Polygon = CreateCircularPolygon(radius, 200);
+		
+		Origin.T = -1000;
+		Worldline.AddEvent(this);
 	}
 	
 	public PathD CreateCircularPolygon(double radius, double segmentLength)
