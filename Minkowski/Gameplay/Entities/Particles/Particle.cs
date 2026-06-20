@@ -36,6 +36,9 @@ public class Particle : WorldlineEntity
         Origin = origin;
         _rotationSpeed = rotationSpeed;
         Velocity = velocity;
+
+        // Record spawn position immediately
+        Worldline.AddEvent(this);
     }
     
     public override void Update(float deltaTime)

@@ -51,8 +51,13 @@ public static class Config
     
     //asteroid stuff
     public const int AsteroidSpacing = 250;
-    public const int AsteroidLoadRadius = 3;
+    public const int AsteroidLoadRadius = 0;
     public const int AsteroidRandomMagnitude = 500;
+
+    //grid stuff
+    public const bool ShowGrid = true;
+    public const int GridSpacing = 100;
+    public const int GridLoadRadius = 3;
     
     public const bool Sound = false; //doesnt really work in splitscreen does it?
     public const int sampleRate = 44100;
@@ -125,6 +130,8 @@ public class ProjectMinkowskiGame : Game
         {
             InputSystem.Update(dt, player);
             AsteroidManager.UpdatePlayer(player, Config.AsteroidLoadRadius, Config.AsteroidSpacing);
+            if (Config.ShowGrid)
+                GridManager.UpdatePlayer(player, Config.GridLoadRadius, Config.GridSpacing);
             foreach (var entity in EntityManager.Entities)
             {
                 entity.RelativityUpdate(dt, player);

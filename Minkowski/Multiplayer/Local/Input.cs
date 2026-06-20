@@ -35,7 +35,8 @@ public static class InputSystem
         { "Azimuth", () => KeyDown(Keys.E) - KeyDown(Keys.Q) },
         { "Beam", () => KeyPressed(Keys.Space) },
         { "Mine", () => KeyPressed(Keys.Z) },
-        { "Zoom", () => KeyDown(Keys.Tab) }
+        { "Zoom", () => KeyDown(Keys.Tab) },
+        { "Shoot", () => KeyDown(Keys.LeftShift) },
         //{ "Jump", () => KeyPressed(Keys.X) }
     };
     

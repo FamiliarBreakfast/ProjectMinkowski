@@ -27,7 +27,7 @@ public class Mine : MotileEntity
         Velocity = velocity;
         Mass = 1;
         Worldline = new Worldline();
-        
+
         Polygon = new PathD //unit octagon
         {
             new PointD( 10.000,  0.0000),
@@ -39,6 +39,9 @@ public class Mine : MotileEntity
             new PointD( 00.000, -10.000),
             new PointD( 07.071, -07.071)
         };
+
+        // Record spawn position immediately so observers can see the mine at its spawn point
+        Worldline.AddEvent(this);
     }
 
     public override void Update(float deltaTime)

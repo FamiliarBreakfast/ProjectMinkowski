@@ -78,33 +78,33 @@ public static class CollisionManager
     }
 
 
-    public static void Collide(Ship ship, Bullet bullet)
+    public static void Collide(Ship ship, Laser laser)
     {
-        if (bullet.Ship != ship)
+        if (laser.Ship != ship)
         {
             // if (bullet.Line.Intersects(ship.Origin))
             // {
-            Vector2? point = bullet.Line.PositionAtZ((float)ship.Origin.T);
+            Vector2? point = laser.Line.PositionAtZ((float)ship.Origin.T);
             if (point != null) {
                 Vector2 p = (Vector2)point;
                 if (Vector2.DistanceSquared(p, ship.Origin.ToVector2()) < Math.Pow(ship.Radius, 2))
                 {
-                    bullet.Line.SetEndTime((float)ship.Origin.T);
-                    bullet.Tracers[ship] = new BulletTracer(ship, bullet.Ship.Color, p, bullet.Line.Phi + MathF.PI);
+                    laser.Line.SetEndTime((float)ship.Origin.T);
+                    laser.Tracers[ship] = new LaserTracer(ship, laser.Ship.Color, p, laser.Line.Phi + MathF.PI);
                     ship.Health -= 10;
                 }
             }
         }
     }
     
-    public static void Collide(Asteroid asteroid, Bullet bullet) //broken
+    public static void Collide(Asteroid asteroid, Laser laser) //broken
     {
-        Vector2? point = bullet.Line.PositionAtZ((float)asteroid.Origin.T);
+        Vector2? point = laser.Line.PositionAtZ((float)asteroid.Origin.T);
         if (point != null) {
             Vector2 p = (Vector2)point;
             if (Vector2.DistanceSquared(p, asteroid.Origin.ToVector2()) < Math.Pow(asteroid.Radius, 2))
             {
-                bullet.Line.SetEndTime((float)asteroid.Origin.T);
+                laser.Line.SetEndTime((float)asteroid.Origin.T);
                 asteroid.Despawn();
             }
         }
@@ -132,14 +132,14 @@ public static class CollisionManager
         // }
     }
     
-    public static void Collide(Mine mine, Bullet bullet)
+    public static void Collide(Mine mine, Laser laser)
     {
         if (mine.Flags == 0)
         {
             //find the point of intersection between the bullet line and the mine polygon
             //create a new worldline event for the at that point and set the mine's flags to detonate
             //MinkowskiVector? point = bullet.Line.IntersectsAt(mine.Origin);
-            Vector2? point = bullet.Line.PositionAtZ((float)mine.Origin.T);
+            Vector2? point = laser.Line.PositionAtZ((float)mine.Origin.T);
             if (point != null)
             {
                 Vector2 p = (Vector2)point;

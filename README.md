@@ -50,6 +50,10 @@ This approach avoids computationally expensive Lorentz transformations as well a
 - - - I have no experience with FM synthesis?
 ### Gameplay
 
+- spherical geometry (may need an engine rewrite)
+- fix lasers
+- sublight projectiles
+- prune worldlines
 - Doppler effect (hiatus)
 - - How implement without obscuring player colors? (if possible?)
 - More weapons (in progress)

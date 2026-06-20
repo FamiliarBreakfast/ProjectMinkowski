@@ -5,6 +5,7 @@ using Minkowski.Gameplay.Entities.Particles;
 using Minkowski.Gameplay.Relativity;
 using Minkowski.Multiplayer.Local;
 using Minkowski.Rendering;
+using Minowski.Gameplay.Entities;
 
 namespace Minkowski.Gameplay.Entities;
 
@@ -33,7 +34,8 @@ public class Ship : MotileEntity
     public float RotationPower = 2f;
 
     public int ParticleTimer = 0;
-    
+    public float BulletCooldown = 0f;
+
     [Control("Parallel")] public float _parallel; 
     [Control("Perpendicular")] public float _perpindicular;
     [Control("Azimuth")] public float _azimuth;
@@ -68,8 +70,8 @@ public class Ship : MotileEntity
             0.3f
         ));
         
-        var bullet = new Bullet(Origin.Clone(), this);
-        bullet.Tracers[this] = new BulletTracer(this, bullet.Ship.Color, Origin.ToVector2(), bullet.Line.Phi);
+        var bullet = new Laser(Origin.Clone(), this);
+        bullet.Tracers[this] = new LaserTracer(this, bullet.Ship.Color, Origin.ToVector2(), bullet.Line.Phi);
         //Flags = 0b1;
     }
 
@@ -86,6 +88,21 @@ public class Ship : MotileEntity
         var mine = new Mine(Origin.Clone(), this, RotationSpeed, Velocity+azimuth*-2);
         mine.Origin.X += azimuth.X*-1.2;
         mine.Origin.Y += azimuth.Y*-1.2;
+    }
+
+    [Control("Shoot")]
+    public void Shoot()
+    {
+        if (BulletCooldown <= 0f)
+        {
+            Vector2 azimuth = new Vector2(MathF.Cos(Rotation), MathF.Sin(Rotation));
+            // Bullet has velocity 80 in ship's rest frame, boost to global frame
+            Vector2 bulletVelInShipFrame = azimuth * 80;
+            Vector2 bulletVelGlobal = Frame.InverseLorentzTransformVelocity(bulletVelInShipFrame);
+            var bullet = new Bullet(Origin.Clone(), this, RotationSpeed, bulletVelGlobal);
+            bullet.Origin = this.Origin.Clone();
+            BulletCooldown = 0.1f; // 0.1 second cooldown
+        }
     }
 
     [Control("Jump")]
@@ -131,6 +148,10 @@ public class Ship : MotileEntity
     
     public override void Update(float deltaTime) //todo: space friction?
     {
+        // Update bullet cooldown
+        if (BulletCooldown > 0f)
+            BulletCooldown -= deltaTime;
+
         if (Math.Abs(_parallel) > 0.01f || Math.Abs(_perpindicular) > 0.01f)
         {
             if (ParticleTimer < 12) ParticleTimer++; else
@@ -186,7 +207,7 @@ public class Ship : MotileEntity
 
             if ((flags & 0b_1000_0000) != 0)
             {
-                new BulletTracer(null, Color.White, position, rotation);
+                new LaserTracer(null, Color.White, position, rotation);
             }
             
             Vector2 relativeVelocity = ship.Frame.LorentzTransformVelocity(velocity);

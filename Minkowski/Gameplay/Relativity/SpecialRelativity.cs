@@ -62,14 +62,10 @@ public class MinkowskiVector {
         // t' = γ (t - (v · r)/c²)
         double tPrime = gamma * (T - vDotR / c2);
 
-        // Spatial transform
+        // r' = r + (γ-1)(v·r/v²)v - γtv
         double coeff = (gamma - 1) / (vMag * vMag);
         double xPrime = X + coeff * vDotR * frameVelocity.X - gamma * T * frameVelocity.X;
         double yPrime = Y + coeff * vDotR * frameVelocity.Y - gamma * T * frameVelocity.Y;
-
-        // Scale by 1/c for the gamma * T * v subtraction (units: time * velocity = distance)
-        xPrime += ( - gamma * T * frameVelocity.X );
-        yPrime += ( - gamma * T * frameVelocity.Y );
 
         return new MinkowskiVector(tPrime, xPrime, yPrime);
     }
@@ -188,6 +184,40 @@ public class FrameOfReference
         Vector2 vPrimePerp = vPerp / (gamma * denom);
 
         return vPrimeParallel + vPrimePerp;
+    }
+
+    /// <summary>
+    /// Inverse transform: converts a velocity from this frame's rest frame to global coordinates.
+    /// Used for adding velocities relativistically (e.g., bullet fired from moving ship).
+    /// </summary>
+    public Vector2 InverseLorentzTransformVelocity(Vector2 localVelocity)
+    {
+        float c = (float)Config.C;
+        Vector2 u = this.Velocity; // frame's velocity
+
+        float uSq = u.LengthSquared();
+        if (uSq == 0f)
+            return localVelocity;
+
+        float gamma = 1f / MathF.Sqrt(1f - uSq / (c * c));
+        float uLen = MathF.Sqrt(uSq);
+        Vector2 uHat = u / uLen;
+
+        // Decompose local velocity into parallel and perpendicular components
+        Vector2 vPrimeParallel = Vector2.Dot(localVelocity, uHat) * uHat;
+        Vector2 vPrimePerp = localVelocity - vPrimeParallel;
+
+        float vPrimeDotU = Vector2.Dot(localVelocity, u);
+
+        // Inverse relativistic velocity addition
+        float denom = 1f + vPrimeDotU / (c * c);
+        if (MathF.Abs(denom) < 1e-6f)
+            denom = 1e-6f * MathF.Sign(denom);
+
+        Vector2 vParallel = (vPrimeParallel + u) / denom;
+        Vector2 vPerp = vPrimePerp / (gamma * denom);
+
+        return vParallel + vPerp;
     }
     
     public static PathD ApplyTerrelPenroseEffect(

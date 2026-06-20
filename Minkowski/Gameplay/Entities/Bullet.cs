@@ -1,85 +1,92 @@
+using Clipper2Lib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Minkowski;
+using Minkowski.Gameplay;
+using Minkowski.Gameplay.Entities;
 using Minkowski.Gameplay.Relativity;
+using Minkowski.Rendering;
 
-namespace Minkowski.Gameplay.Entities;
+namespace Minowski.Gameplay.Entities;
 
-public class Bullet : TracerEntity
+public class Bullet : MotileEntity
 {
-    public Dictionary<Ship, BulletTracer> Tracers = new();
-    public Ship Ship;
-    
-    public Bullet(MinkowskiVector origin, Ship ship)
-    {
-        Ship = ship;
-        Line = new Line(origin, Config.C, Ship.Rotation);
-    }
-    
-    public override void Update(float deltaTime)
-    { }
-    
-    public override void RelativityUpdate(float deltaTime, Ship ship)
-    { }
+	public Ship Ship;
 
-    public override void Draw(SpriteBatch spriteBatch, Ship ship)
-    { }
+	public Bullet(MinkowskiVector origin, Ship ship, float rotationSpeed, Vector2 velocity)
+	{
+		Ship = ship;
+		Origin = origin;
+		Rotation = ship.Rotation;
+		Velocity = velocity;
+		Mass = 1;
+		Worldline = new Worldline();
 
-    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship)
-    { }
-}
+		Polygon = new PathD // simple projectile shape
+		{
+			new PointD(10.0, 0.0),   // front point
+			new PointD(-5.0, 3.0),   // back right
+			new PointD(-5.0, -3.0)   // back left
+		};
 
-public class BulletTracer : WorldlineEntity //todo: this does not need to be a WorldlineEntity
-{
-    public Ship? Ship;
-    public Vector2 Origin;
-    public float Rotation;
-    public Color Color;
-    
-    private static int _fadeTimerMax = 100;
-    private int _fadeTimer;
-    private static float _tracerLength = Config.C * _fadeTimerMax * 2; //ensure tracer end is never visible
-    public BulletTracer(Ship? ship, Color color, Vector2 origin, float rotation)
-    {
-        Ship = ship;
-        Origin = origin;
-        Rotation = rotation;
-        Color = color;
-        _fadeTimer = _fadeTimerMax;
-    }
-    
-    public override void Update(float deltaTime)
-    {
-        if (_fadeTimer == 0)
-        {
-            Despawn();
-        }
-        _fadeTimer--;
-    }
-    
-    public override void RelativityUpdate(float deltaTime, Ship ship)
-    { }
+		// Record spawn position immediately so observers can see the bullet at its spawn point
+		Worldline.AddEvent(this);
+	}
 
-    public override void Draw(SpriteBatch spriteBatch, Ship ship)
-    { }
+	public override void Update(float deltaTime)
+	{
+		ApplyMovement(deltaTime);
+		Worldline.AddEvent(this);
 
-    public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship)
-    {
-        if (ship == Ship || Ship == null)
-        {
-            Vector2 direction = new Vector2(MathF.Cos(Rotation), MathF.Sin(Rotation));
+		// Despawn if not visible to any player
+		bool visibleToAnyShip = false;
+		foreach (var ship in PlayerManager.Ships)
+		{
+			if (Worldline.HasVisibleEvent(ship.Origin))
+			{
+				visibleToAnyShip = true;
+				break;
+			}
+		}
+
+		if (!visibleToAnyShip && Worldline.Events.Count > 0)
+		{
+			EntityManager.Despawn(this);
+		}
+	}
+
+	public override void RelativityUpdate(float deltaTime, Ship ship)
+	{ }
+
+	public override void Draw(SpriteBatch spriteBatch, Ship ship)
+	{ }
+
+	public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship)
+	{
+		if (Worldline.HasVisibleEvent(ship.Origin))
+		{
+			Vector2 position = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Position", interpolate: true);
+			Vector2 velocity = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Velocity", interpolate: true);
+			float rotation = Worldline.GetVisibleVariable<float>(ship.Origin, "Rotation", interpolate: true);
+
+			Vector2 relativeVelocity = ship.Frame.LorentzTransformVelocity(velocity);
+
+			Color color = Config.DopplerEffect switch
+			{
+				true => ColorHelper.DopplerShift(Ship.Color, relativeVelocity),
+				_ => Ship.Color
+			};
             
-            Vector2 worldStart = Origin;
-            Vector2 worldEnd = Origin + direction * _tracerLength;
+			var vertices =
+				Transformations.ToVertexArray(
+					FrameOfReference.ApplyTerrelPenroseEffect(
+						Transformations.Translate(
+							Transformations.Rotate(Polygon, rotation),
+							position.X, position.Y),
+						position, relativeVelocity, ship.Position),
+					color);
 
-            float t = (float)_fadeTimer / _fadeTimerMax;
-            
-            Color fade = new Color(Color.R / 255f * t, Color.G / 255f * t, Color.B / 255f * t, t);
-
-            VertexPositionColor[] vertices = new VertexPositionColor[2];
-            vertices[0] = new VertexPositionColor(new Vector3(worldStart, 0), fade);
-            vertices[1] = new VertexPositionColor(new Vector3(worldEnd, 0), fade);
-
-            ship.Shapes.Add(vertices);
-        }
-    }
+			ship.Shapes.Add(vertices);
+		}
+	}
 }
