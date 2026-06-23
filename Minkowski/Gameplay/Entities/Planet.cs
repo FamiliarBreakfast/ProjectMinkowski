@@ -70,8 +70,10 @@ public class Planet : MotileEntity
 		//get distance from core
 		//find section of crust visible at distance
 		//render section
-		if (Worldline.HasVisibleEvent(ship.Origin))
+		int visibleIndex = Worldline.GetVisibleEventIndex(ship.Origin);
+		if (visibleIndex >= 0)
 		{
+			Worldline.RecordObservation(ship.Id, visibleIndex);
 			Vector2 position = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Position", interpolate: true);
 			Vector2 velocity = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Velocity", interpolate: true);
 			float rotation = Worldline.GetVisibleVariable<float>(ship.Origin, "Rotation", interpolate: true);

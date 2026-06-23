@@ -98,14 +98,63 @@ namespace Minkowski.Gameplay.Relativity {
     }
     
     public class Worldline {
+        public const int MaxEvents = 1000; // Hard cap on worldline size
         public List<WorldlineEvent> Events { get; } = new();
+
+        // Track last observed event index per observer (keyed by Ship.Id)
+        private Dictionary<int, int> _lastObservedIndex = new();
+
+        // Record that an observer has seen an event at this index
+        public void RecordObservation(int observerId, int eventIndex)
+        {
+            if (eventIndex < 0) return;
+
+            if (!_lastObservedIndex.TryGetValue(observerId, out int current) || eventIndex > current)
+                _lastObservedIndex[observerId] = eventIndex;
+        }
+
+        // Prune events observed by all active observers
+        public int PruneObservedEvents(IEnumerable<int> activeObserverIds)
+        {
+            if (Events.Count <= 1) return 0;
+
+            var activeSet = new HashSet<int>(activeObserverIds);
+
+            // Remove stale observer entries
+            foreach (var id in _lastObservedIndex.Keys.Where(id => !activeSet.Contains(id)).ToList())
+                _lastObservedIndex.Remove(id);
+
+            // Find minimum observed index (all observers must have seen events up to this point)
+            int minIndex = int.MaxValue;
+            foreach (var observerId in activeSet)
+            {
+                if (!_lastObservedIndex.TryGetValue(observerId, out int idx))
+                    return 0; // Observer hasn't observed yet - can't prune
+                minIndex = Math.Min(minIndex, idx);
+            }
+
+            if (minIndex <= 0 || minIndex == int.MaxValue) return 0;
+
+            // Prune events before minIndex
+            Events.RemoveRange(0, minIndex);
+
+            // Adjust tracked indices
+            foreach (var key in _lastObservedIndex.Keys.ToList())
+                _lastObservedIndex[key] -= minIndex;
+
+            return minIndex;
+        }
 
         public void AddEvent(WorldlineEntity entity) {
             var newData = entity.GetWorldlineData();
             var lastEvent = Events.Count > 0 ? Events[Events.Count - 1] : null;
-            
+
             if (lastEvent == null || !Equals(lastEvent.Data, newData))
                 Events.Add(new WorldlineEvent { Origin = entity.Origin.Clone(), Data = newData });
+
+            // Enforce hard cap - remove oldest events
+            while (Events.Count > MaxEvents)
+                Events.RemoveAt(0);
         }
 
         public bool HasVisibleEvent(MinkowskiVector origin)

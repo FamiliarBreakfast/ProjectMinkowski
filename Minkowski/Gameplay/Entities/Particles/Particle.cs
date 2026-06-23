@@ -9,7 +9,7 @@ namespace Minkowski.Gameplay.Entities.Particles;
 public class Particle : WorldlineEntity
 {
     private const int DecayTime = 8;
-    private const int GlobalDecayTime = DecayTime * 8; //good up to 0.99c time dilation
+    private const int GlobalDecayTime = DecayTime; // 8 seconds max lifetime
     
     public float _rotationSpeed;
     private float _globalDecayTimer = 0;
@@ -64,8 +64,10 @@ public class Particle : WorldlineEntity
 
     public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship)
     {
-        if (Worldline.HasVisibleEvent(ship.Origin))
+        int visibleIndex = Worldline.GetVisibleEventIndex(ship.Origin);
+        if (visibleIndex >= 0)
         {
+            Worldline.RecordObservation(ship.Id, visibleIndex);
             Vector2 position = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Position", interpolate: true);
             Vector2 velocity = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Velocity", interpolate: true);
             float rotation = Worldline.GetVisibleVariable<float>(ship.Origin, "Rotation", interpolate: true);

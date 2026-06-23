@@ -57,8 +57,10 @@ public class GridPoint : WorldlineEntity
 
     public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship)
     {
-        if (Worldline.HasVisibleEvent(ship.Origin))
+        int visibleIndex = Worldline.GetVisibleEventIndex(ship.Origin);
+        if (visibleIndex >= 0)
         {
+            Worldline.RecordObservation(ship.Id, visibleIndex);
             Vector2 position = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Position", interpolate: true);
             Vector2 velocity = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Velocity", interpolate: true);
 

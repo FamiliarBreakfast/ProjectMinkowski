@@ -21,6 +21,96 @@ public static class Program
     }
 }
 
+public static class Diagnostics
+{
+    public static bool Enabled = true;
+    private static float _updateTimer = 0;
+    private static float _updateInterval = 0.5f; // Update stats every 0.5 seconds
+
+    // Cached stats
+    public static int TotalEntities;
+    public static int TotalWorldlineEvents;
+    public static int MaxWorldlineEvents;
+    public static string MaxWorldlineEntityType = "";
+    public static Dictionary<string, int> EntityCounts = new();
+    public static Dictionary<string, int> WorldlineEventCounts = new();
+    public static float FrameTime;
+    public static float UpdateTime;
+    public static float DrawTime;
+
+    private static System.Diagnostics.Stopwatch _updateStopwatch = new();
+    private static System.Diagnostics.Stopwatch _drawStopwatch = new();
+
+    public static void StartUpdateTimer() => _updateStopwatch.Restart();
+    public static void StopUpdateTimer() { _updateStopwatch.Stop(); UpdateTime = (float)_updateStopwatch.Elapsed.TotalMilliseconds; }
+    public static void StartDrawTimer() => _drawStopwatch.Restart();
+    public static void StopDrawTimer() { _drawStopwatch.Stop(); DrawTime = (float)_drawStopwatch.Elapsed.TotalMilliseconds; }
+
+    public static void Update(float deltaTime)
+    {
+        if (!Enabled) return;
+
+        FrameTime = deltaTime * 1000; // Convert to ms
+        _updateTimer += deltaTime;
+
+        if (_updateTimer >= _updateInterval)
+        {
+            _updateTimer = 0;
+            RefreshStats();
+        }
+    }
+
+    private static void RefreshStats()
+    {
+        EntityCounts.Clear();
+        WorldlineEventCounts.Clear();
+        TotalEntities = Gameplay.Entities.EntityManager.Entities.Count;
+        TotalWorldlineEvents = 0;
+        MaxWorldlineEvents = 0;
+        MaxWorldlineEntityType = "";
+
+        foreach (var entity in Gameplay.Entities.EntityManager.Entities)
+        {
+            string typeName = entity.GetType().Name;
+            EntityCounts.TryGetValue(typeName, out int count);
+            EntityCounts[typeName] = count + 1;
+
+            if (entity is Gameplay.Entities.WorldlineEntity wle && wle.Worldline != null)
+            {
+                int eventCount = wle.Worldline.Events.Count;
+                TotalWorldlineEvents += eventCount;
+
+                WorldlineEventCounts.TryGetValue(typeName, out int wlCount);
+                WorldlineEventCounts[typeName] = wlCount + eventCount;
+
+                if (eventCount > MaxWorldlineEvents)
+                {
+                    MaxWorldlineEvents = eventCount;
+                    MaxWorldlineEntityType = typeName;
+                }
+            }
+        }
+    }
+
+    public static string GetReport()
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"=== DIAGNOSTICS ===");
+        sb.AppendLine($"Frame: {FrameTime:F1}ms | Update: {UpdateTime:F1}ms | Draw: {DrawTime:F1}ms");
+        sb.AppendLine($"Entities: {TotalEntities} | WL Events: {TotalWorldlineEvents}");
+        sb.AppendLine($"Max WL: {MaxWorldlineEvents} ({MaxWorldlineEntityType})");
+        sb.AppendLine($"--- By Type ---");
+
+        foreach (var kvp in EntityCounts.OrderByDescending(x => x.Value))
+        {
+            WorldlineEventCounts.TryGetValue(kvp.Key, out int wlEvents);
+            sb.AppendLine($"  {kvp.Key}: {kvp.Value} (WL: {wlEvents})");
+        }
+
+        return sb.ToString();
+    }
+}
+
 public static class Config
 {
     /// <summary>
@@ -55,7 +145,7 @@ public static class Config
     public const int AsteroidRandomMagnitude = 500;
 
     //grid stuff
-    public const bool ShowGrid = true;
+    public const bool ShowGrid = false;
     public const int GridSpacing = 100;
     public const int GridLoadRadius = 3;
     
@@ -131,6 +221,7 @@ public class ProjectMinkowskiGame : Game
 
     protected override void Update(GameTime gameTime)
     {
+        Diagnostics.StartUpdateTimer();
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
         // Input and chunk loading happen once per frame
@@ -163,14 +254,26 @@ public class ProjectMinkowskiGame : Game
             CollisionManager.Update(subDt);
         }
 
+        // Prune worldlines every frame (lightweight when nothing to prune)
+        var activeIds = PlayerManager.Ships.Select(s => s.Id);
+        foreach (var entity in EntityManager.Entities)
+        {
+            if (entity is WorldlineEntity wle && wle.Worldline != null)
+                wle.Worldline.PruneObservedEvents(activeIds);
+        }
+
         if (Config.Sound)
         {
             Sound.Update(dt, synthInstance);
         }
+
+        Diagnostics.StopUpdateTimer();
+        Diagnostics.Update(dt);
     }
 
     protected override void Draw(GameTime gameTime)
     {
+        Diagnostics.StartDrawTimer();
         GraphicsDevice.Clear(Color.Black);
         spriteBatch.Begin();
         foreach (Ship ship in PlayerManager.Ships)
@@ -178,6 +281,15 @@ public class ProjectMinkowskiGame : Game
             ship.View.Render(spriteBatch);
         }
         MapView.Render(spriteBatch);
+
+        // Render diagnostics overlay
+        if (Diagnostics.Enabled && GameResources.DefaultFont != null)
+        {
+            string report = Diagnostics.GetReport();
+            GameResources.DefaultFont.DrawText(spriteBatch, report, new Vector2(10, 10), Color.Yellow);
+        }
+
         spriteBatch.End();
+        Diagnostics.StopDrawTimer();
     }
 }

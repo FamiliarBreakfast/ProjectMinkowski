@@ -50,10 +50,11 @@ This approach avoids computationally expensive Lorentz transformations as well a
 - - - I have no experience with FM synthesis?
 ### Gameplay
 
-- spherical geometry (may need an engine rewrite)
+- cylindrical/toroidal geometry
 - fix lasers
-- sublight projectiles
-- prune worldlines
+- fix the bullet bug
+- implement fixed velocity worldlines for particles and other projectiles
+- death
 - Doppler effect (hiatus)
 - - How implement without obscuring player colors? (if possible?)
 - More weapons (in progress)

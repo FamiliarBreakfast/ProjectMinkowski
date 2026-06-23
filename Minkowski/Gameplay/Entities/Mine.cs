@@ -94,8 +94,10 @@ public class Mine : MotileEntity
 
     public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship)
     {
-        if (Worldline.HasVisibleEvent(ship.Origin)) //todo: cleanup
+        int visibleIndex = Worldline.GetVisibleEventIndex(ship.Origin);
+        if (visibleIndex >= 0) //todo: cleanup
         {
+            Worldline.RecordObservation(ship.Id, visibleIndex);
             byte flags = Worldline.GetVisibleVariable<byte>(ship.Origin, "Flags", interpolate: false);
             if (flags == 0)
             {
