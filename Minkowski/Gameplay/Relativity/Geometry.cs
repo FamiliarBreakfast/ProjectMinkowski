@@ -456,6 +456,118 @@ namespace Minkowski.Gameplay.Relativity {
         }
     }
 
+    /// <summary>
+    /// Analytical worldline for constant-velocity objects.
+    /// Computes position at any time without event sampling.
+    /// </summary>
+    public class LinearWorldline {
+        public MinkowskiVector SpawnOrigin { get; }
+        public Vector2 Velocity { get; }
+
+        // Additional tracked state (not position-dependent)
+        public float Rotation { get; set; }
+        public float RotationSpeed { get; set; }
+
+        public LinearWorldline(MinkowskiVector origin, Vector2 velocity) {
+            SpawnOrigin = origin.Clone();
+            Velocity = velocity;
+        }
+
+        /// <summary>
+        /// Analytical position at global time t.
+        /// </summary>
+        public MinkowskiVector GetPositionAt(float t) {
+            float dt = t - (float)SpawnOrigin.T;
+            return new MinkowskiVector(
+                t,
+                SpawnOrigin.X + Velocity.X * dt,
+                SpawnOrigin.Y + Velocity.Y * dt
+            );
+        }
+
+        /// <summary>
+        /// Light-cone visibility: find what time the observer sees.
+        /// Solves: observerTime = eventTime + distance(observer, position(eventTime)) / c
+        /// </summary>
+        public float? GetVisibleTime(MinkowskiVector observer) {
+            float ox = (float)observer.X, oy = (float)observer.Y, ot = (float)observer.T;
+            float sx = (float)SpawnOrigin.X, sy = (float)SpawnOrigin.Y, st = (float)SpawnOrigin.T;
+            float vx = Velocity.X, vy = Velocity.Y;
+            float c = Config.C;
+
+            // position(t) = (sx + vx*(t-st), sy + vy*(t-st))
+            // distance² = (ox - sx - vx*(t-st))² + (oy - sy - vy*(t-st))²
+            // (ot - t)² * c² = distance²
+
+            // Let τ = t - st (time since spawn)
+            // (ot - st - τ)² * c² = (ox - sx - vx*τ)² + (oy - sy - vy*τ)²
+
+            float dx0 = ox - sx, dy0 = oy - sy, dt0 = ot - st;
+
+            // Expand: (dt0 - τ)²c² = (dx0 - vx*τ)² + (dy0 - vy*τ)²
+            // c²dt0² - 2c²dt0*τ + c²τ² = dx0² - 2dx0*vx*τ + vx²τ² + dy0² - 2dy0*vy*τ + vy²τ²
+            // (c² - vx² - vy²)τ² + (-2c²dt0 + 2dx0*vx + 2dy0*vy)τ + (c²dt0² - dx0² - dy0²) = 0
+
+            float v2 = vx*vx + vy*vy;
+            float a = c*c - v2;
+            float b = -2*c*c*dt0 + 2*dx0*vx + 2*dy0*vy;
+            float cCoef = c*c*dt0*dt0 - dx0*dx0 - dy0*dy0;
+
+            // Handle edge case where a ≈ 0 (velocity ≈ c)
+            if (MathF.Abs(a) < 1e-6f) {
+                // Linear equation: b*τ + cCoef = 0
+                if (MathF.Abs(b) < 1e-6f) return null;
+                float tau = -cCoef / b;
+                if (tau >= 0 && tau <= dt0) return st + tau;
+                return null;
+            }
+
+            float discriminant = b*b - 4*a*cCoef;
+            if (discriminant < 0) return null;
+
+            float sqrtD = MathF.Sqrt(discriminant);
+            float tau1 = (-b - sqrtD) / (2*a);
+            float tau2 = (-b + sqrtD) / (2*a);
+
+            // We want the largest τ ≤ dt0 and τ ≥ 0
+            float? result = null;
+            if (tau1 >= 0 && tau1 <= dt0) result = tau1;
+            if (tau2 >= 0 && tau2 <= dt0 && (result == null || tau2 > result)) result = tau2;
+
+            return result.HasValue ? st + result.Value : null;
+        }
+
+        /// <summary>
+        /// Get the visible position from an observer's perspective.
+        /// </summary>
+        public Vector2? GetVisiblePosition(MinkowskiVector observer) {
+            var t = GetVisibleTime(observer);
+            if (t == null) return null;
+            var pos = GetPositionAt(t.Value);
+            return pos.ToVector2();
+        }
+
+        /// <summary>
+        /// Get the rotation at the visible time.
+        /// </summary>
+        public float GetVisibleRotation(MinkowskiVector observer) {
+            var t = GetVisibleTime(observer);
+            if (t == null) return Rotation;
+            float dt = t.Value - (float)SpawnOrigin.T;
+            return Rotation + RotationSpeed * dt;
+        }
+
+        /// <summary>
+        /// Get the decay time at the visible time, clamped to maxDecay.
+        /// </summary>
+        public float GetVisibleDecay(MinkowskiVector observer, float maxDecay) {
+            var t = GetVisibleTime(observer);
+            if (t == null) return 0;
+            float dt = t.Value - (float)SpawnOrigin.T;
+            return MathF.Min(dt, maxDecay);
+        }
+    }
+
     public static class World { //todo: gpu compute
         // Worldline - Worldline
         public static bool Intersects(Worldline a, Worldline b) {

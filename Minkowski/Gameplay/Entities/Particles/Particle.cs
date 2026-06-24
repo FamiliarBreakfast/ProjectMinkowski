@@ -10,14 +10,11 @@ public class Particle : WorldlineEntity
 {
     private const int DecayTime = 8;
     private const int GlobalDecayTime = DecayTime; // 8 seconds max lifetime
-    
-    public float _rotationSpeed;
-    private float _globalDecayTimer = 0;
-    
-    [Worldline] public float _decayTimer = 0;
-    [Worldline] public float Rotation;
-    [Worldline] public Vector2 Velocity;
 
+    private float _globalDecayTimer = 0;
+
+    public LinearWorldline LinearWorldline;
+    public Vector2 Velocity;
     public Color Color;
 
     public Particle(MinkowskiVector origin, Vector2 velocity, float rotationSpeed, Color color, PathD? path)
@@ -31,29 +28,29 @@ public class Particle : WorldlineEntity
                 new PointD(0.57, -0.33)
             };
         }
-        Worldline = new Worldline();
+
         Color = color;
         Origin = origin;
-        _rotationSpeed = rotationSpeed;
         Velocity = velocity;
 
-        // Record spawn position immediately
-        Worldline.AddEvent(this);
+        // Use analytical worldline instead of event-based sampling
+        LinearWorldline = new LinearWorldline(origin, velocity);
+        LinearWorldline.RotationSpeed = rotationSpeed;
+
+        // Don't create Worldline - that's the whole point of this optimization
     }
-    
+
     public override void Update(float deltaTime)
     {
         _globalDecayTimer += deltaTime;
-        _decayTimer += deltaTime;
-        if (_decayTimer >= DecayTime) _decayTimer = DecayTime;
         if (_globalDecayTimer > GlobalDecayTime) Despawn();
-        
-        Rotation += _rotationSpeed * deltaTime;
+
+        // Update Origin analytically (for collision detection if needed)
         Origin.T += deltaTime;
         Origin.X += Velocity.X * deltaTime;
         Origin.Y += Velocity.Y * deltaTime;
-        
-        Worldline.AddEvent(this);
+
+        // NO Worldline.AddEvent() - position is computed analytically
     }
 
     public override void RelativityUpdate(float deltaTime, Ship ship)
@@ -64,34 +61,31 @@ public class Particle : WorldlineEntity
 
     public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship)
     {
-        int visibleIndex = Worldline.GetVisibleEventIndex(ship.Origin);
-        if (visibleIndex >= 0)
+        var visiblePos = LinearWorldline.GetVisiblePosition(ship.Origin);
+        if (visiblePos == null) return;
+
+        Vector2 position = visiblePos.Value;
+        float rotation = LinearWorldline.GetVisibleRotation(ship.Origin);
+        float decayT = LinearWorldline.GetVisibleDecay(ship.Origin, DecayTime) / DecayTime;
+
+        Vector2 relativeVelocity = ship.Frame.LorentzTransformVelocity(Velocity);
+
+        Color color = Config.DopplerEffect switch
         {
-            Worldline.RecordObservation(ship.Id, visibleIndex);
-            Vector2 position = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Position", interpolate: true);
-            Vector2 velocity = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Velocity", interpolate: true);
-            float rotation = Worldline.GetVisibleVariable<float>(ship.Origin, "Rotation", interpolate: true);
-            float t = Worldline.GetVisibleVariable<float>(ship.Origin, "_decayTimer", interpolate: true) / DecayTime;
+            true => ColorHelper.DopplerShift(Color, relativeVelocity),
+            _ => Color
+        };
 
-            Vector2 relativeVelocity = ship.Frame.LorentzTransformVelocity(velocity);
+        var vertices =
+            Transformations.ToVertexArray(
+                FrameOfReference.ApplyTerrelPenroseEffect(
+                    Transformations.Translate(
+                        Transformations.Rotate(Polygon, rotation),
+                        position.X, position.Y),
+                    position, relativeVelocity, ship.Position),
+                Color.Lerp(color, Color.Transparent, decayT));
 
-            Color color = Config.DopplerEffect switch
-            {
-                true => ColorHelper.DopplerShift(Color, relativeVelocity),
-                _ => Color
-            };
-
-            var vertices =
-                Transformations.ToVertexArray(
-                    FrameOfReference.ApplyTerrelPenroseEffect(
-                        Transformations.Translate(
-                            Transformations.Rotate(Polygon, rotation),
-                            position.X, position.Y),
-                        position, relativeVelocity, ship.Position),
-                    Color.Lerp(color, Color.Transparent, t));
-
-            ship.Shapes.Add(vertices);
-        }
+        ship.Shapes.Add(vertices);
     }
 }
 

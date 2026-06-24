@@ -22,11 +22,23 @@ public class Bullet : MotileEntity
 		Mass = 1;
 		Worldline = new Worldline();
 
-		Polygon = new PathD // simple projectile shape
+		// Polygon = new PathD // simple projectile shape
+		// {
+		// 	new PointD(10.0, 0.0),   // front point
+		// 	new PointD(-5.0, 3.0),   // back right
+		// 	new PointD(-5.0, -3.0)   // back left
+		// };
+		
+		Polygon = new PathD //unit octagon
 		{
-			new PointD(10.0, 0.0),   // front point
-			new PointD(-5.0, 3.0),   // back right
-			new PointD(-5.0, -3.0)   // back left
+			new PointD( 10.000,  0.0000),
+			new PointD( 07.071,  07.071),
+			new PointD( 00.000,  10.000),
+			new PointD(-07.071,  07.071),
+			new PointD(-10.000,  00.000),
+			new PointD(-07.071, -07.071),
+			new PointD( 00.000, -10.000),
+			new PointD( 07.071, -07.071)
 		};
 
 		// Record spawn position immediately so observers can see the bullet at its spawn point

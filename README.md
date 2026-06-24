@@ -51,8 +51,11 @@ This approach avoids computationally expensive Lorentz transformations as well a
 ### Gameplay
 
 - cylindrical/toroidal geometry
+- gut sound code
 - fix lasers
+- - see lasers that dont hit?
 - fix the bullet bug
+- fix warnings
 - implement fixed velocity worldlines for particles and other projectiles
 - death
 - Doppler effect (hiatus)
