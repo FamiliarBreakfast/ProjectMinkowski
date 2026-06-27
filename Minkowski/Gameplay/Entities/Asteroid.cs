@@ -23,15 +23,7 @@ public class Asteroid : WorldlineEntity
     
     public override void Update(float deltaTime)
     {
-        int i = 0;
-        foreach (Ship ship in PlayerManager.Ships)
-        {
-            if (Vector2.DistanceSquared(ship.Origin.ToVector2(), Origin.ToVector2()) < Math.Pow(Config.AsteroidLoadRadius*Config.AsteroidSpacing, 2))
-            {
-                i++;
-            }
-        }
-        if (i == 0)
+        if (Vector2.DistanceSquared(Ship.Instance.Origin.ToVector2(), Origin.ToVector2()) >= Math.Pow(Config.AsteroidLoadRadius*Config.AsteroidSpacing, 2))
         {
             AsteroidManager.Asteroids.Remove(Origin.ToVector2());
             Despawn();
@@ -52,7 +44,7 @@ public class Asteroid : WorldlineEntity
         int visibleIndex = Worldline.GetVisibleEventIndex(ship.Origin);
         if (visibleIndex >= 0)
         {
-            Worldline.RecordObservation(ship.Id, visibleIndex);
+            Worldline.RecordObservation(0, visibleIndex);
             Vector2 position = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Position", interpolate: true);
             Vector2 velocity = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Velocity", interpolate: true);
             float rotation = Worldline.GetVisibleVariable<float>(ship.Origin, "Rotation", interpolate: true);

@@ -127,17 +127,7 @@ public static class InputSystem
         _previousKeyboardState = _currentKeyboardState;
         _currentKeyboardState = Keyboard.GetState();
 
-        if (ControlType[ship.Id].Item1 != null)
-        {
-            _currship = ship.Id;
-            if (_currentGamePadState.ContainsKey(_currship))
-            {
-                _previousGamePadState[_currship] = _currentGamePadState[_currship]; //todo: this needs to be fixed
-            }
-
-            _currentGamePadState[_currship] = GamePad.GetState((PlayerIndex)ControlType[ship.Id].Item1);
-        }
-        InjectControls(ship, ControlType[ship.Id].Item2);
+        InjectControls(ship, KeyboardMap);
     }
     
     public static int KeyDown(Keys key) => _currentKeyboardState.IsKeyDown(key) ? 1 : 0;

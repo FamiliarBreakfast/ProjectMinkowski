@@ -73,7 +73,7 @@ public class Planet : MotileEntity
 		int visibleIndex = Worldline.GetVisibleEventIndex(ship.Origin);
 		if (visibleIndex >= 0)
 		{
-			Worldline.RecordObservation(ship.Id, visibleIndex);
+			Worldline.RecordObservation(0, visibleIndex);
 			Vector2 position = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Position", interpolate: true);
 			Vector2 velocity = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Velocity", interpolate: true);
 			float rotation = Worldline.GetVisibleVariable<float>(ship.Origin, "Rotation", interpolate: true);

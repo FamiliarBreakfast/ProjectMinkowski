@@ -47,16 +47,8 @@ public class Mine : MotileEntity
     public override void Update(float deltaTime)
     {
         ApplyMovement(deltaTime);
-        //foreach player if all see flags == 1 then despawn
-        int i = 0;
-        foreach (Ship ship in PlayerManager.Ships)
-        {
-            if (Worldline.GetVisibleVariable<float>(ship.Origin, "_FadeTimer", interpolate: false) >= 0)
-            {
-                i++;
-            }
-        }
-        if (i == 0)
+        // Despawn if fade timer expired for player
+        if (Worldline.GetVisibleVariable<float>(Ship.Instance.Origin, "_FadeTimer", interpolate: false) < 0)
         {
             Despawn();
         }
@@ -97,7 +89,7 @@ public class Mine : MotileEntity
         int visibleIndex = Worldline.GetVisibleEventIndex(ship.Origin);
         if (visibleIndex >= 0) //todo: cleanup
         {
-            Worldline.RecordObservation(ship.Id, visibleIndex);
+            Worldline.RecordObservation(0, visibleIndex);
             byte flags = Worldline.GetVisibleVariable<byte>(ship.Origin, "Flags", interpolate: false);
             if (flags == 0)
             {

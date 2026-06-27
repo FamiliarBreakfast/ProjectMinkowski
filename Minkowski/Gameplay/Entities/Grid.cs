@@ -27,18 +27,8 @@ public class GridPoint : WorldlineEntity
 
     public override void Update(float deltaTime)
     {
-        bool inRange = false;
-        foreach (Ship ship in PlayerManager.Ships)
-        {
-            if (Vector2.DistanceSquared(ship.Origin.ToVector2(), Origin.ToVector2()) <
-                Math.Pow(Config.GridLoadRadius * Config.GridSpacing, 2))
-            {
-                inRange = true;
-                break;
-            }
-        }
-
-        if (!inRange)
+        if (Vector2.DistanceSquared(Ship.Instance.Origin.ToVector2(), Origin.ToVector2()) >=
+            Math.Pow(Config.GridLoadRadius * Config.GridSpacing, 2))
         {
             GridManager.Points.Remove(Origin.ToVector2());
             Despawn();
@@ -60,7 +50,7 @@ public class GridPoint : WorldlineEntity
         int visibleIndex = Worldline.GetVisibleEventIndex(ship.Origin);
         if (visibleIndex >= 0)
         {
-            Worldline.RecordObservation(ship.Id, visibleIndex);
+            Worldline.RecordObservation(0, visibleIndex);
             Vector2 position = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Position", interpolate: true);
             Vector2 velocity = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Velocity", interpolate: true);
 

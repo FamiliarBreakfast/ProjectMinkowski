@@ -11,13 +11,13 @@ namespace Minkowski.Gameplay.Entities;
 
 public class Ship : MotileEntity
 {
+    public static Ship Instance { get; private set; }
+
     public PlayerView View;
-    
-    public int Id;
-    
+
     public List<VertexPositionColor[]> Shapes = new();
     public List<int> AttackHash = new(); //used to track attacks, so we don't double-count them
-    
+
     public Color Color;
     public FrameOfReference Frame;
 
@@ -42,12 +42,12 @@ public class Ship : MotileEntity
 
     [Control("Zoom")] public int _zoom;
 
-    public Ship(MinkowskiVector absolutePosition, int id) {
+    public Ship(MinkowskiVector absolutePosition) {
+        Instance = this;
         Origin = absolutePosition;
         Worldline = new Worldline();
         Frame = new FrameOfReference(absolutePosition, Velocity);
-        Id = id;
-        Color = ColorHelper.GetColorFromID(Id);
+        Color = ColorHelper.GetColorFromID(0);
         Mass = 500;
         
         Polygon = new PathD
@@ -200,7 +200,7 @@ public class Ship : MotileEntity
         int visibleIndex = Worldline.GetVisibleEventIndex(ship.Origin);
         if (visibleIndex >= 0)
         {
-            Worldline.RecordObservation(ship.Id, visibleIndex);
+            Worldline.RecordObservation(0, visibleIndex);
             Vector2 position = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Position", interpolate: true);
             Vector2 velocity = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Velocity", interpolate: true);
             float rotation = Worldline.GetVisibleVariable<float>(ship.Origin, "Rotation", interpolate: true);

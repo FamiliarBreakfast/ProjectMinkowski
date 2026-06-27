@@ -95,6 +95,7 @@ public static class Diagnostics
     public static string GetReport()
     {
         var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"");
         sb.AppendLine($"=== DIAGNOSTICS ===");
         sb.AppendLine($"Frame: {FrameTime:F1}ms | Update: {UpdateTime:F1}ms | Draw: {DrawTime:F1}ms");
         sb.AppendLine($"Entities: {TotalEntities} | WL Events: {TotalWorldlineEvents}");
@@ -153,12 +154,6 @@ public static class Config
     public const int sampleRate = 44100;
     public const int bufferSize = 2048;
 
-    /// <summary>
-    /// Number of physics substeps per frame. Higher values improve temporal resolution
-    /// for collisions and worldline recording at the cost of CPU time.
-    /// </summary>
-    public const int Substeps = 4;
-
     public static ProjectMinkowskiGame Game;
 }
 
@@ -206,7 +201,7 @@ public class ProjectMinkowskiGame : Game
 
         //WorldconeAnalyticalIntersectionTests.RunAll();
         
-        PlayerManager.InitializeLocalPlayers(Config.Players); // or 4
+        PlayerManager.Initialize();
         
         spriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -225,41 +220,23 @@ public class ProjectMinkowskiGame : Game
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
         // Input and chunk loading happen once per frame
-        foreach (var player in PlayerManager.Ships)
+        InputSystem.Update(dt, Ship.Instance);
+        AsteroidManager.UpdatePlayer(Ship.Instance, Config.AsteroidLoadRadius, Config.AsteroidSpacing);
+        if (Config.ShowGrid)
+            GridManager.UpdatePlayer(Ship.Instance, Config.GridLoadRadius, Config.GridSpacing);
+
+        // Update all entities
+        foreach (var entity in EntityManager.Entities)
         {
-            InputSystem.Update(dt, player);
-            AsteroidManager.UpdatePlayer(player, Config.AsteroidLoadRadius, Config.AsteroidSpacing);
-            if (Config.ShowGrid)
-                GridManager.UpdatePlayer(player, Config.GridLoadRadius, Config.GridSpacing);
+            entity.Update(dt);
         }
-
-        // Physics substeps for improved temporal resolution
-        float subDt = dt / Config.Substeps;
-        for (int step = 0; step < Config.Substeps; step++)
-        {
-            foreach (var player in PlayerManager.Ships)
-            {
-                foreach (var entity in EntityManager.Entities)
-                {
-                    entity.RelativityUpdate(subDt, player);
-                }
-            }
-
-            foreach (var entity in EntityManager.Entities)
-            {
-                entity.Update(subDt);
-            }
-
-            EntityManager.ProcessQueues();
-            CollisionManager.Update(subDt);
-        }
+        EntityManager.ProcessQueues();
 
         // Prune worldlines every frame (lightweight when nothing to prune)
-        var activeIds = PlayerManager.Ships.Select(s => s.Id);
         foreach (var entity in EntityManager.Entities)
         {
             if (entity is WorldlineEntity wle && wle.Worldline != null)
-                wle.Worldline.PruneObservedEvents(activeIds);
+                wle.Worldline.PruneObservedEvents([0]);
         }
 
         if (Config.Sound)
@@ -276,10 +253,7 @@ public class ProjectMinkowskiGame : Game
         Diagnostics.StartDrawTimer();
         GraphicsDevice.Clear(Color.Black);
         spriteBatch.Begin();
-        foreach (Ship ship in PlayerManager.Ships)
-        {
-            ship.View.Render(spriteBatch);
-        }
+        Ship.Instance.View.Render(spriteBatch);
         MapView.Render(spriteBatch);
 
         // Render diagnostics overlay

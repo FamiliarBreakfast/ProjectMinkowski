@@ -10,12 +10,22 @@ public class PlayerView
 	public Ship Ship;
 	public Viewport Viewport;
 	public RotatableCamera2D Camera;
-	private Rectangle ProjectionArea => Config.Players == 2 ? new Rectangle(-1000, -1000, 2000, 2000) : new Rectangle(-1000, -1000, 2000, 1000);
+	private Rectangle ProjectionArea
+	{
+		get
+		{
+			var vp = ViewRectangle();
+			float aspect = (float)vp.Width / vp.Height;
+			int height = 2000;
+			int width = (int)(height * aspect);
+			return new Rectangle(-width / 2, -height / 2, width, height);
+		}
+	}
 	
 	public PlayerView(Ship ship)
 	{
 		Ship = ship;
-		Viewport = new Viewport(ViewRectangle(ship.Id));
+		Viewport = new Viewport(ViewRectangle());
 		Camera = new RotatableCamera2D(Config.Game.GraphicsDevice);
 	}
 	
@@ -26,7 +36,7 @@ public class PlayerView
 		
 		var originalViewport = graphics.Viewport;
 		
-		Viewport.Bounds = ViewRectangle(Ship.Id);
+		Viewport.Bounds = ViewRectangle();
 		
 		graphics.Viewport = Viewport;
 		
@@ -140,31 +150,12 @@ public class PlayerView
 	}
 	
 	/// <summary>
-	/// Returns the rectangle of the viewport for the given player index
+	/// Returns the rectangle of the viewport (full screen for single player)
 	/// </summary>
-	/// <param name="index">Player index</param>
-	/// <returns></returns>
-	// TODO: Dynamic fractioning of the screen instead of a hardcoded divisioning
-	public static Rectangle ViewRectangle(int index)
+	public static Rectangle ViewRectangle()
 	{
-		int count = PlayerManager.Count;
 		int w = Config.Game.GraphicsDevice.PresentationParameters.BackBufferWidth;
 		int h = Config.Game.GraphicsDevice.PresentationParameters.BackBufferHeight;
-
-		return count switch {
-			2 => index == 0
-				? new Rectangle(0, 0, w / 2, h)
-				: new Rectangle(w / 2, 0, w / 2, h),
-
-			4 => index switch {
-				0 => new Rectangle(0, 0, w / 2, h / 2),         // Top-left
-				1 => new Rectangle(w / 2, 0, w / 2, h / 2),      // Top-right
-				2 => new Rectangle(0, h / 2, w / 2, h / 2),      // Bottom-left
-				3 => new Rectangle(w / 2, h / 2, w / 2, h / 2),  // Bottom-right
-				_ => new Rectangle(0, 0, w, h),
-			},
-
-			_ => new Rectangle(0, 0, w, h)
-		};
+		return new Rectangle(0, 0, w, h);
 	}
 }

@@ -50,18 +50,8 @@ public class Bullet : MotileEntity
 		ApplyMovement(deltaTime);
 		Worldline.AddEvent(this);
 
-		// Despawn if not visible to any player
-		bool visibleToAnyShip = false;
-		foreach (var ship in PlayerManager.Ships)
-		{
-			if (Worldline.HasVisibleEvent(ship.Origin))
-			{
-				visibleToAnyShip = true;
-				break;
-			}
-		}
-
-		if (!visibleToAnyShip && Worldline.Events.Count > 0)
+		// Despawn if not visible to player
+		if (!Worldline.HasVisibleEvent(Ship.Instance.Origin) && Worldline.Events.Count > 0)
 		{
 			EntityManager.Despawn(this);
 		}
@@ -78,7 +68,7 @@ public class Bullet : MotileEntity
 		int visibleIndex = Worldline.GetVisibleEventIndex(ship.Origin);
 		if (visibleIndex >= 0)
 		{
-			Worldline.RecordObservation(ship.Id, visibleIndex);
+			Worldline.RecordObservation(0, visibleIndex);
 			Vector2 position = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Position", interpolate: true);
 			Vector2 velocity = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Velocity", interpolate: true);
 			float rotation = Worldline.GetVisibleVariable<float>(ship.Origin, "Rotation", interpolate: true);

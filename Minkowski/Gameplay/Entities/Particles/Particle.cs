@@ -36,8 +36,6 @@ public class Particle : WorldlineEntity
         // Use analytical worldline instead of event-based sampling
         LinearWorldline = new LinearWorldline(origin, velocity);
         LinearWorldline.RotationSpeed = rotationSpeed;
-
-        // Don't create Worldline - that's the whole point of this optimization
     }
 
     public override void Update(float deltaTime)
@@ -45,12 +43,9 @@ public class Particle : WorldlineEntity
         _globalDecayTimer += deltaTime;
         if (_globalDecayTimer > GlobalDecayTime) Despawn();
 
-        // Update Origin analytically (for collision detection if needed)
         Origin.T += deltaTime;
         Origin.X += Velocity.X * deltaTime;
         Origin.Y += Velocity.Y * deltaTime;
-
-        // NO Worldline.AddEvent() - position is computed analytically
     }
 
     public override void RelativityUpdate(float deltaTime, Ship ship)

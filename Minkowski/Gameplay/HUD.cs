@@ -31,54 +31,11 @@ public static class HUD
         var speed = ship.Velocity.Length();
 
         var font = GameResources.DefaultFont;
-        spriteBatch.DrawString(font, $"UNK-{ship.Id}    Velocity: {speed / Config.C:F3}c    Gamma: {MotileEntity.Gamma(ship.Velocity):F2}", new Vector2(12, 12), Color.White);
-        spriteBatch.DrawString(font, $"", new Vector2(12, 22), Color.White);
-
-        int i = 1;
-        
-        foreach (Ship target in PlayerManager.Ships)
-        {
-            if (target == ship)  continue;
-            if (target.Worldline.HasVisibleEvent(ship.Origin))
-            {
-                Vector2 position =
-                    target.Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Position", interpolate: true);
-                
-                float distance = Vector2.Distance(ship.Position, position);
-                
-                spriteBatch.DrawString(font, $"UNK-{target.Id}    Distance: {distance / Config.C:F2}ls", new Vector2(12, 18*i+12), target.Color);
-                i++;
-            }
-        }
+        spriteBatch.DrawString(font, $"UNK-0    Velocity: {speed / Config.C:F3}c    Gamma: {MotileEntity.Gamma(ship.Velocity):F2}", new Vector2(12, 12), Color.White);
     }
 
     public static void VertexDraw(SpriteBatch spriteBatch, Ship ship)
     {
-        foreach (Ship target in PlayerManager.Ships)
-        {
-            if (target.Worldline.HasVisibleEvent(ship.Origin))
-            {
-                Vector2 position =
-                    target.Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Position", interpolate: true);
-                float distance = Vector2.DistanceSquared(ship.Position, position);
-                if (distance > Math.Pow(Range, 2))
-                {
-                    Vector2 orbit = Vector2.Normalize(position - ship.Position);
-                    float angle = MathF.Atan2(orbit.Y, orbit.X);
-
-                    float x = ship.Position.X + float.Cos(angle) * OrbitRange;
-                    float y = ship.Position.Y + float.Sin(angle) * OrbitRange;
-
-                    var vertices = Transformations.ToVertexArray(
-                        Transformations.Translate(
-                            Transformations.Rotate(Polygon, angle),
-                            x, y),
-                        target.Color);
-
-                    ship.Shapes.Add(vertices);
-                }
-            }
-        }
         foreach (Planet target in EntityManager.GetAll<Planet>())
         {
             if (target.Worldline.HasVisibleEvent(ship.Origin))

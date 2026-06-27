@@ -4,19 +4,7 @@ using Minkowski.Gameplay.Relativity;
 namespace Minkowski.Gameplay;
 
 public static class PlayerManager {
-    public static List<Ship> Ships = new();
-    public static int Count => Ships.Count;
-    public static void InitializeLocalPlayers(int count) {
-        for (int i = 0; i < count; i++) {
-            Ships.Add(new Ship(new MinkowskiVector(0, 25 * i, 0), i));
-        }
-
-        // for (int i = 0; i < 20; i++)
-        // {
-        //     new Asteroid(new MinkowskiVector(0, 25 * i, 7*i));
-        // }
+    public static void Initialize() {
+        new Ship(new MinkowskiVector(0, 0, 0));
     }
-    
-    public static Ship? GetShipById(int id) =>
-        Ships.FirstOrDefault(p => p.Id == id);
 }
