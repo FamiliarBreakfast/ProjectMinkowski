@@ -51,12 +51,12 @@ This approach avoids computationally expensive Lorentz transformations as well a
 ### Gameplay
 
 - cylindrical/toroidal geometry
+- clean geometry code
 - gut sound code
 - fix lasers
 - - see lasers that dont hit?
-- fix the bullet bug
 - fix warnings
-- implement fixed velocity worldlines for particles and other projectiles
+- implement fixed velocity worldlines for other projectiles
 - death
 - Doppler effect (hiatus)
 - - How implement without obscuring player colors? (if possible?)
@@ -66,21 +66,14 @@ This approach avoids computationally expensive Lorentz transformations as well a
 - - - Increase speed of light?
 - - Powerups/boosts
 - - Possible FTL boost powerup for short periods of time
-- Refactor entity/collision system for better performance
-- - Implement chunking?
-- - Or make worldgen deterministic
+- shrink world
 - Predictive aim reticule
 - FTL?? There is engine support (in the sense it doesn't immediately crash)
 - - Could cause paradoxes?
 - - - Might not be a problem
-### Bugs
-
-- None at the moment
 ### Long Term
 
 - Multithreading
-- Online networking
-- - Teams and Chat (with signal delay)
 
 
 [^1]: **Motomangucode Font** is licensed under the **Creative Commons Attribution-NoDerivatives 4.0 International License**
