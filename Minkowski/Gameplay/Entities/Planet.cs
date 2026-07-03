@@ -19,7 +19,7 @@ public class Planet : MotileEntity
 		Mass = mass;
 		Origin = origin;
 
-		Polygon = CreateCircularPolygon(radius, 200);
+		Polygon = CreateCircularPolygon(radius, 100);
 		
 		Origin.T = -1000;
 		Worldline.AddEvent(this);

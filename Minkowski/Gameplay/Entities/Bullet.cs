@@ -9,9 +9,14 @@ using Minkowski.Rendering;
 
 namespace Minowski.Gameplay.Entities;
 
-public class Bullet : MotileEntity
+public class Bullet : WorldlineEntity
 {
 	public Ship Ship;
+
+	// Use analytical worldline instead of event-based sampling
+	public LinearWorldline LinearWorldline;
+	public Vector2 Velocity;
+	public float Rotation;
 
 	public Bullet(MinkowskiVector origin, Ship ship, float rotationSpeed, Vector2 velocity)
 	{
@@ -19,8 +24,6 @@ public class Bullet : MotileEntity
 		Origin = origin;
 		Rotation = ship.Rotation;
 		Velocity = velocity;
-		Mass = 1;
-		Worldline = new Worldline();
 
 		// Polygon = new PathD // simple projectile shape
 		// {
@@ -28,30 +31,31 @@ public class Bullet : MotileEntity
 		// 	new PointD(-5.0, 3.0),   // back right
 		// 	new PointD(-5.0, -3.0)   // back left
 		// };
-		
-		Polygon = new PathD //unit octagon
+
+		Polygon = new PathD
 		{
-			new PointD( 10.000,  0.0000),
-			new PointD( 07.071,  07.071),
-			new PointD( 00.000,  10.000),
-			new PointD(-07.071,  07.071),
-			new PointD(-10.000,  00.000),
-			new PointD(-07.071, -07.071),
-			new PointD( 00.000, -10.000),
-			new PointD( 07.071, -07.071)
+			new PointD( 0.000,  1.000),
+			new PointD( 1.000,  0.000),
+			new PointD( 0.000,  -1.000),
+			new PointD(-1.000,  0.000)
 		};
 
-		// Record spawn position immediately so observers can see the bullet at its spawn point
-		Worldline.AddEvent(this);
+		LinearWorldline = new LinearWorldline(origin, velocity);
+		LinearWorldline.Rotation = ship.Rotation;
+		LinearWorldline.RotationSpeed = rotationSpeed;
 	}
 
 	public override void Update(float deltaTime)
 	{
-		ApplyMovement(deltaTime);
-		Worldline.AddEvent(this);
+		Origin.T += deltaTime;
+		Origin.X += Velocity.X * deltaTime;
+		Origin.Y += Velocity.Y * deltaTime;
 
-		// Despawn if not visible to player
-		if (!Worldline.HasVisibleEvent(Ship.Instance.Origin) && Worldline.Events.Count > 0)
+		// despawn after 10 lightseconds
+		var player = Ship.Instance.Origin.Clone();
+		double dx = Origin.X - player.X;
+		double dy = Origin.Y - player.Y;
+		if (dx * dx + dy * dy > (10 * Config.C) * (10 * Config.C)) //pythagorean
 		{
 			EntityManager.Despawn(this);
 		}
@@ -65,32 +69,29 @@ public class Bullet : MotileEntity
 
 	public override void VertexDraw(GraphicsDevice graphicsDevice, BasicEffect effect, Ship ship)
 	{
-		int visibleIndex = Worldline.GetVisibleEventIndex(ship.Origin);
-		if (visibleIndex >= 0)
+		var visiblePos = LinearWorldline.GetVisiblePosition(ship.Origin);
+		if (visiblePos == null) return;
+
+		Vector2 position = visiblePos.Value;
+		float rotation = LinearWorldline.GetVisibleRotation(ship.Origin);
+
+		Vector2 relativeVelocity = ship.Frame.LorentzTransformVelocity(Velocity);
+
+		Color color = Config.DopplerEffect switch
 		{
-			Worldline.RecordObservation(0, visibleIndex);
-			Vector2 position = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Position", interpolate: true);
-			Vector2 velocity = Worldline.GetVisibleVariable<Vector2>(ship.Origin, "Velocity", interpolate: true);
-			float rotation = Worldline.GetVisibleVariable<float>(ship.Origin, "Rotation", interpolate: true);
+			true => ColorHelper.DopplerShift(Ship.Color, relativeVelocity),
+			_ => Ship.Color
+		};
 
-			Vector2 relativeVelocity = ship.Frame.LorentzTransformVelocity(velocity);
+		var vertices =
+			Transformations.ToVertexArray(
+				FrameOfReference.ApplyTerrelPenroseEffect(
+					Transformations.Translate(
+						Transformations.Rotate(Polygon, rotation),
+						position.X, position.Y),
+					position, relativeVelocity, ship.Position),
+				color);
 
-			Color color = Config.DopplerEffect switch
-			{
-				true => ColorHelper.DopplerShift(Ship.Color, relativeVelocity),
-				_ => Ship.Color
-			};
-            
-			var vertices =
-				Transformations.ToVertexArray(
-					FrameOfReference.ApplyTerrelPenroseEffect(
-						Transformations.Translate(
-							Transformations.Rotate(Polygon, rotation),
-							position.X, position.Y),
-						position, relativeVelocity, ship.Position),
-					color);
-
-			ship.Shapes.Add(vertices);
-		}
+		ship.Shapes.Add(vertices);
 	}
 }

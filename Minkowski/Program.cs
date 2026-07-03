@@ -117,7 +117,7 @@ public static class Config
     /// <summary>
     /// Number of players. Currently only 2 or 4 supported.
     /// </summary>
-    public const int Players = 4;
+    public const int Players = 2;
     /// <summary>
     /// The speed of light, in distance per time unit (e.g. 10 means light moves 10 units/sec).
     /// </summary>

@@ -99,8 +99,8 @@ public class Ship : MotileEntity
             // Bullet has velocity 80 in ship's rest frame, boost to global frame
             Vector2 bulletVelInShipFrame = azimuth * 80;
             Vector2 bulletVelGlobal = Frame.InverseLorentzTransformVelocity(bulletVelInShipFrame);
-            var bullet = new Bullet(Origin.Clone(), this, RotationSpeed, bulletVelGlobal);
-            bullet.Origin = this.Origin.Clone();
+            new Bullet(new MinkowskiVector(Origin.Clone().T, Origin.Clone().X, (Origin.Clone().Y-7.5)), this, RotationSpeed, bulletVelGlobal);
+            new Bullet(new MinkowskiVector(Origin.Clone().T, Origin.Clone().X, (Origin.Clone().Y+7.5)), this, RotationSpeed, bulletVelGlobal);
             BulletCooldown = 0.1f; // 0.1 second cooldown
         }
     }
